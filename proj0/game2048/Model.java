@@ -143,39 +143,58 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-        int drow = 1;
-        int dcol = 0;
         if (side != side.NORTH) {
             this.board.setViewingPerspective(side);
         }
-        moveTile(board_size, board_size, side); // first move all tiles to that direction
-        for (int c = 0; c < board_size; c++) {
-            boolean merged;
-            merged = false;
-            for (int r = 0; r < board_size; r++) {
+        moveTile(board_size, board_size); // first move all tiles to that direction
+        int c = 0;
+        while (c < board_size) {
+            int r = 0;
+            while (r < board_size) {
                 Tile t = this.board.tile(c, r);
-                if (t == null) continue;
+                if (t == null) {
+                    r += 1;
+                    continue;
+                }
                 int t_value = t.value();
-                if (r + 2 * drow < board_size && r + 2 * drow > 0 && c + 2 * dcol < board_size && c + 2 * dcol > 0 && this.board.tile(c + dcol, r + drow) != null && t_value == this.board.tile(c + dcol, r + drow).value() && this.board.tile(c + dcol * 2, r + drow * 2) != null && t_value == this.board.tile(c + dcol * 2, r + drow * 2).value()) {
-                    Tile tile = this.board.tile(c + dcol, r + drow);
-                    this.board.move(c + dcol * 2, r + drow * 2, tile);
-                    Tile newTile = this.board.tile(c + dcol * 2, r + drow * 2);
-                    int newRow = nextFreeTile(c + dcol * 2, r + drow * 2, side);
+                if(wholeColumn(c, t)){
+                    Tile tile1 = this.board.tile(c, board_size-2);
+                    this.board.move(c, board_size-1, tile1);
+                    score += this.board.tile(c, board_size-1).value() * 2;
+                    Tile tile2 = this.board.tile(c, r);
+                    this.board.move(c, r+1, tile2);
+                    score += this.board.tile(c, r+1).value() * 2;
+                    r = board_size;
+                }
+                else if (r + 2 < board_size &&
+                        this.board.tile(c, r + 1) != null &&
+                        t_value == this.board.tile(c, r + 1).value() &&
+                        this.board.tile(c, r + 2) != null &&
+                        t_value == this.board.tile(c, r + 2).value())
+                {
+                    Tile tile = this.board.tile(c, r + 1);
+                    this.board.move(c, r + 2, tile);
+                    Tile newTile = this.board.tile(c, r + 2);
+                    int newRow = nextFreeTile(c, r + 2);
                     if (newRow != -1) this.board.move(c, newRow, newTile);
                     score += newTile.value();
-                    moveTile(board_size, board_size, side); // move all tiles below up
-                    merged = true;
-                } else if (r + drow < board_size && r + drow > 0 && c + dcol < board_size && c + dcol > 0 && !merged && this.board.tile(c + dcol, r + drow) != null && t_value == this.board.tile(c + dcol, r + drow).value()) {
-                    this.board.move(c + dcol, r + drow, t); // merge
-                    Tile newTile = this.board.tile(c + dcol, r + drow);
-                    int newRow = nextFreeTile(c + dcol, r + drow, side);
+                    moveTile(board_size, board_size); // move all tiles below up
+                    r = r + 3;
+                } else if (r + 1 < board_size &&
+                        this.board.tile(c, r + 1) != null &&
+                        t_value == this.board.tile(c, r + 1).value())
+                {
+                    this.board.move(c, r + 1, t); // merge
+                    Tile newTile = this.board.tile(c, r + 1);
+                    int newRow = nextFreeTile(c, r + 1);
                     if (newRow != -1) this.board.move(c, newRow, newTile); // move the merged new tile up
                     score += newTile.value();
-                    moveTile(board_size, board_size, side); // move all tiles below up
-                    merged = true;
-                }
-            }
-        }
+                    moveTile(board_size, board_size); // move all tiles below up
+                    r = r + 2;
+                } else r = r + 1;
+            } // end of while (r < board_size)
+            c = c + 1;
+        } // end of while (c < board_size)
 
         changed = true;
         checkGameOver();
@@ -185,11 +204,10 @@ public class Model extends Observable {
         return changed;
     }
 
-    private int nextFreeTile(int col, int row, Side side) {
+    private int nextFreeTile(int col, int row) {
         /** Find the next position for the tile to be
          * @param col current col of the tile
          * @param row current row of the tile
-         * @param side direction of moving
          *
          */
         for (int i = row; i < board.size(); i++) {
@@ -198,16 +216,28 @@ public class Model extends Observable {
         return -1;
     }
 
-    private void moveTile(int col, int row, Side side) {
+    private void moveTile(int col, int row) {
         for (int c = 0; c < col; c++) {
             for (int r = 0; r < row; r++) {
                 Tile t = board.tile(c, r);
                 if (t != null) {
-                    int newRow = nextFreeTile(c, r, side);
+                    int newRow = nextFreeTile(c, r);
                     if (newRow != -1) board.move(c, newRow, t);
                 }
             }
         }
+    }
+
+    private boolean wholeColumn(int c, Tile t){
+        /**
+         * Return true if on column c, each tile is not null and of the same value
+         */
+        for(int r = 0; r < board.size(); r++){
+            Tile tile = board.tile(c, r);
+            if(tile == null) return false;
+            if(tile.value() != t.value()) return false;
+        }
+        return true;
     }
 
     /**
