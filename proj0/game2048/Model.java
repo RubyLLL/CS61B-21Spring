@@ -160,10 +160,12 @@ public class Model extends Observable {
                 if(wholeColumn(c, t)){
                     Tile tile1 = this.board.tile(c, board_size-2);
                     this.board.move(c, board_size-1, tile1);
-                    score += this.board.tile(c, board_size-1).value() * 2;
+                    score += this.board.tile(c, board_size-1).value() ;
                     Tile tile2 = this.board.tile(c, r);
                     this.board.move(c, r+1, tile2);
-                    score += this.board.tile(c, r+1).value() * 2;
+                    Tile newTile = this.board.tile(c, r+1);
+                    this.board.move(c, r+2, newTile);
+                    score += newTile.value() ;
                     r = board_size;
                 }
                 else if (r + 2 < board_size &&
@@ -195,7 +197,6 @@ public class Model extends Observable {
             } // end of while (r < board_size)
             c = c + 1;
         } // end of while (c < board_size)
-
         changed = true;
         checkGameOver();
         if (this.gameOver && this.score > this.maxScore) this.maxScore = this.score;
@@ -210,15 +211,15 @@ public class Model extends Observable {
          * @param row current row of the tile
          *
          */
-        for (int i = row; i < board.size(); i++) {
+        for (int i = board.size()-1; i >= row; i--) {
             if (board.tile(col, i) == null) return i;
         }
         return -1;
     }
 
     private void moveTile(int col, int row) {
-        for (int c = 0; c < col; c++) {
-            for (int r = 0; r < row; r++) {
+        for (int c = col-1; c >= 0; c--) {
+            for (int r = row-1; r >= 0; r--) {
                 Tile t = board.tile(c, r);
                 if (t != null) {
                     int newRow = nextFreeTile(c, r);
