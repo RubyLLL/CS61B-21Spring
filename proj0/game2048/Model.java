@@ -140,9 +140,7 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
         int board_size = this.board.size();
-        // TODO: Modify this.board (and perhaps this.score) to account
-        // for the tilt to the Side SIDE. If the board changed, set the
-        // changed local variable to true.
+
         if (side != side.NORTH) {
             this.board.setViewingPerspective(side);
         }
@@ -156,11 +154,10 @@ public class Model extends Observable {
                     r += 1;
                     continue;
                 }
-                int t_value = t.value();
                 if(wholeColumn(c, t)){
                     Tile tile1 = this.board.tile(c, board_size-2);
                     this.board.move(c, board_size-1, tile1);
-                    score += this.board.tile(c, board_size-1).value() ;
+                    score += this.board.tile(c, board_size-1).value();
                     Tile tile2 = this.board.tile(c, r);
                     this.board.move(c, r+1, tile2);
                     Tile newTile = this.board.tile(c, r+1);
@@ -168,12 +165,7 @@ public class Model extends Observable {
                     score += newTile.value() ;
                     r = board_size;
                 }
-                else if (r + 2 < board_size &&
-                        this.board.tile(c, r + 1) != null &&
-                        t_value == this.board.tile(c, r + 1).value() &&
-                        this.board.tile(c, r + 2) != null &&
-                        t_value == this.board.tile(c, r + 2).value())
-                {
+                else if (threeTilesStreak(c, r, t)) {
                     Tile tile = this.board.tile(c, r + 1);
                     this.board.move(c, r + 2, tile);
                     Tile newTile = this.board.tile(c, r + 2);
@@ -182,10 +174,7 @@ public class Model extends Observable {
                     score += newTile.value();
                     moveTile(board_size, board_size); // move all tiles below up
                     r = r + 3;
-                } else if (r + 1 < board_size &&
-                        this.board.tile(c, r + 1) != null &&
-                        t_value == this.board.tile(c, r + 1).value())
-                {
+                } else if (twoTileStreak(c, r, t)) {
                     this.board.move(c, r + 1, t); // merge
                     Tile newTile = this.board.tile(c, r + 1);
                     int newRow = nextFreeTile(c, r + 1);
@@ -229,16 +218,36 @@ public class Model extends Observable {
         }
     }
 
+    /**
+     * Return true if on column c, each tile is not null and of the same value
+     */
     private boolean wholeColumn(int c, Tile t){
-        /**
-         * Return true if on column c, each tile is not null and of the same value
-         */
         for(int r = 0; r < board.size(); r++){
             Tile tile = board.tile(c, r);
             if(tile == null) return false;
             if(tile.value() != t.value()) return false;
         }
         return true;
+    }
+
+    /**
+     * Return true if counting from tile(c, r) and above,
+     * a three tiles streak presents in one column
+     */
+    private boolean threeTilesStreak(int c, int r, Tile tile){
+        if(r + 2 < this.board.size() &&
+                this.board.tile(c, r + 1) != null &&
+                tile.value() == this.board.tile(c, r + 1).value() &&
+                this.board.tile(c, r + 2) != null &&
+                tile.value() == this.board.tile(c, r + 2).value()) return true;
+        return false;
+    }
+
+    private boolean twoTileStreak(int c, int r, Tile tile){
+        if(r + 1 < this.board.size() &&
+                this.board.tile(c, r + 1) != null &&
+                tile.value() == this.board.tile(c, r + 1).value()) return true;
+        return false;
     }
 
     /**
