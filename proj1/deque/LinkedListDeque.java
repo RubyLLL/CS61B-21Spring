@@ -102,19 +102,10 @@ public class LinkedListDeque<T> {
         return true;
     }
 
-    public T getRecursive(int index, Node<T> node){
+    private T getRecursive(int index, Node<T> node){
         if(node == sentinel) return null;
         if(index == 1) return node.item;
         return getRecursive(index - 1, node.next);
     }
 
-    public static void main(String[] args){
-        LinkedListDeque<String> lld1 = new LinkedListDeque<>();
-        lld1.addFirst("front");
-        lld1.addFirst("frontmost");
-
-        System.out.println(lld1.getRecursive(2, lld1.sentinel.next));
-        System.out.println(lld1.getRecursive(1, lld1.sentinel.next));
-        lld1.printDeque();
-    }
 }

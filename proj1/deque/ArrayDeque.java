@@ -50,16 +50,16 @@ public class ArrayDeque<T> {
 
     public T removeFirst() {
         if(size == 0) return null;
-        T target = items[front];
-        items[front] = null;
+        T target = items[front + 1];
+        items[front + 1] = null;
         front ++;
         size --;
         return target;
     }
     public T removeLast() {
         if(size == 0) return null;
-        T target = items[rear];
-        items[rear] = null;
+        T target = items[rear - 1];
+        items[rear - 1] = null;
         rear --;
         size --;
         return target;
@@ -76,10 +76,10 @@ public class ArrayDeque<T> {
         String res = "";
         while(curr < size){
             res += get(curr) + " ";
+            curr ++;
         }
         System.out.println(res);
     }
 
-    public static void main(String[] args){
-    }
+    public static void main(String[] args){}
 }
