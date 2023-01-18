@@ -174,7 +174,8 @@ public class Model extends Observable {
                     score += newTile.value();
                     moveTile(board_size, board_size); // move all tiles below up
                     r = r + 3;
-                } else if (twoTileStreak(c, r, t)) {
+                }
+                else if (twoTileStreak(c, r, t)) {
                     this.board.move(c, r + 1, t); // merge
                     Tile newTile = this.board.tile(c, r + 1);
                     int newRow = nextFreeTile(c, r + 1);
