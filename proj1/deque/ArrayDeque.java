@@ -1,8 +1,6 @@
 package deque;
 
-import static org.junit.Assert.*;
-
-public class ArrayDeque<T> {
+public class ArrayDeque<T> implements Deque<T> {
     private T[] items;
     private int front;
     private int rear;
@@ -15,6 +13,7 @@ public class ArrayDeque<T> {
         size = 0;
     }
 
+    @Override
     public void addFirst(T item){
         if (front == -1) resize(2 * items.length);
         items[front] = item;
@@ -22,6 +21,7 @@ public class ArrayDeque<T> {
         size ++;
     }
 
+    @Override
     public void addLast(T item) {
         if(rear == items.length) resize(2 * items.length);
         items[rear] = item;
@@ -39,15 +39,11 @@ public class ArrayDeque<T> {
         items = temp;
     }
 
-
     public int size() {
         return size;
     }
 
-    public boolean isEmpty(){
-        return size == 0;
-    }
-
+    @Override
     public T removeFirst() {
         if(size == 0) return null;
         T target = items[front + 1];
@@ -56,6 +52,8 @@ public class ArrayDeque<T> {
         size --;
         return target;
     }
+
+    @Override
     public T removeLast() {
         if(size == 0) return null;
         T target = items[rear - 1];
@@ -65,12 +63,14 @@ public class ArrayDeque<T> {
         return target;
     }
 
+    @Override
     public T get(int index){
         if(index >= size || index < -1) return null;
         int target = front + 1 + index;
         return items[target];
     }
 
+    @Override
     public void printDeque(){
         int curr = 0;
         String res = "";
@@ -80,6 +80,22 @@ public class ArrayDeque<T> {
         }
         System.out.println(res);
     }
+
+    public boolean equals(Object o){
+        if (this == o) return true;
+        if (o == null || getClass()!= o.getClass()) return false;
+
+        ArrayDeque<?> arrayDeque = (ArrayDeque<?>) o;
+        if (size!= arrayDeque.size) return false;
+
+        for(int i = 0; i < size; i++){
+            if(!get(i).equals(arrayDeque.get(i))) return false;
+        }
+        return true;
+    }
+
+    // TODO Auto-generated method stub
+    public Iterator<T> iterator(){ return null; }
 
     public static void main(String[] args){}
 }

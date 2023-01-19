@@ -1,6 +1,6 @@
 package deque;
 
-public class LinkedListDeque<T> {
+public class LinkedListDeque<T> implements Deque<T>{
     private final Node<T> sentinel;
     private int size;
 
@@ -22,10 +22,7 @@ public class LinkedListDeque<T> {
         this.size = 0;
     }
 
-    public boolean isEmpty() {
-        return this.size == 0;
-    }
-
+    @Override
     public void addFirst(T item){
         Node<T> node = new Node<>(item, null, null);
         if (size == 0) sentinel.prev = node;
@@ -39,6 +36,7 @@ public class LinkedListDeque<T> {
     /**
      * @param item the item to be added to the end of the deque
      */
+    @Override
     public void addLast(T item){
         if(size == 0){
             addFirst(item);
@@ -51,8 +49,10 @@ public class LinkedListDeque<T> {
         size ++;
     }
 
+    @Override
     public int size(){ return size;}
 
+    @Override
     public void printDeque(){
         String rec = "";
         for (Node<T> node = sentinel.next; node!= sentinel; node = node.next){
@@ -61,6 +61,7 @@ public class LinkedListDeque<T> {
         System.out.println(rec);
     }
 
+    @Override
     public T removeFirst(){
         if (size == 0) return null;
         T item = sentinel.next.item; // current first item
@@ -70,6 +71,7 @@ public class LinkedListDeque<T> {
         return item;
     }
 
+    @Override
     public T removeLast(){
         if(size == 0) return null;
         T item = sentinel.prev.item;
@@ -79,6 +81,7 @@ public class LinkedListDeque<T> {
         return item;
     }
 
+    @Override
     public T get(int index){
         if(index > size) return null;
         Node<T> curr = sentinel;
@@ -101,6 +104,9 @@ public class LinkedListDeque<T> {
         }
         return true;
     }
+
+    // TODO Auto-generated method stub
+    public Iterator<T> iterator(){ return null; }
 
     private T getRecursive(int index, Node<T> node){
         if(node == sentinel) return null;
