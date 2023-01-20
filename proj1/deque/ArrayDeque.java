@@ -163,35 +163,4 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     public Iterator<T> iterator() {
         return new MyArrayIterator();
     }
-
-    public static void main(String[] args) {
-        ArrayDeque<Integer> deque = new ArrayDeque<>();
-        deque.addFirst(1);
-        deque.addFirst(2);
-        deque.addLast(7);
-        deque.addLast(8);
-        deque.addFirst(1);
-        deque.addFirst(2);
-        deque.addLast(7);
-        deque.addLast(8);
-        deque.addFirst(1);
-        deque.addFirst(2);
-        deque.addLast(7);
-        deque.addLast(8);
-        deque.addFirst(1);
-        deque.addFirst(2);
-        deque.addLast(7);
-        deque.addLast(8);
-
-        deque.removeFirst();
-        deque.removeFirst();
-        deque.removeFirst();
-        deque.removeFirst();
-        deque.removeFirst();
-        deque.removeFirst();
-        deque.removeFirst();
-        deque.removeFirst();
-        deque.removeFirst();
-        deque.removeFirst();
-    }
 }
