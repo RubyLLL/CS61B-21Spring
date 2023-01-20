@@ -154,15 +154,17 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return new MyLLIterator();
     }
 
+    private T recursiveHelper(Node<T> node, int index) {
+        if (index == 0) {
+            return node.item;
+        }
+        return recursiveHelper(node.next, index - 1);
+    }
+
     public T getRecursive(int index) {
-        if (index >= size) {
+        if (index >= size || index < 0) {
             return null;
         }
-        if (index == 0) {
-            return sentinel.next.item;
-        } else {
-            sentinel = sentinel.next;
-        }
-        return getRecursive(index - 1);
+        return recursiveHelper(sentinel.next, index);
     }
 }
