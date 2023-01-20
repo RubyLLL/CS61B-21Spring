@@ -11,7 +11,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         private Node<T> next;
         private Node<T> prev;
 
-        public Node(T item, Node<T> next, Node<T> prev) {
+        Node(T item, Node<T> next, Node<T> prev) {
             this.item = item;
             this.next = next;
             this.prev = prev;
@@ -34,7 +34,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         node.next = currentFront == null ? sentinel : currentFront;
         node.prev = sentinel;
         sentinel.next = node;
-        if (currentFront != null) currentFront.prev = node;
+        if (currentFront != null) {
+            currentFront.prev = node;
+        }
         size++;
     }
 
@@ -128,10 +130,10 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return true;
     }
 
-   class MyLLIterator implements Iterator<T> {
+    class MyLLIterator implements Iterator<T> {
         private Node<T> curr;
 
-        public MyLLIterator() {
+        MyLLIterator() {
             curr = sentinel.next;
         }
 
@@ -158,7 +160,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         }
         if (index == 0) {
             return sentinel.next.item;
-        } else{
+        } else {
             sentinel = sentinel.next;
         }
         return getRecursive(index - 1);

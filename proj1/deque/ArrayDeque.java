@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private T[] items;
     private int front;
     private int rear;
@@ -45,7 +45,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
     private void resize(int capacity) {
         T[] temp = (T[]) new Object[capacity];
-        int frontCount = items.length / 2-1 - front;
+        int frontCount = items.length / 2 - 1 - front;
         int middle = capacity / 2;
         System.arraycopy(items, front + 1, temp, middle - frontCount, size);
         front = middle - frontCount - 1;
@@ -67,7 +67,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
     @Override
     public T removeFirst() {
-        if (size == 0) return null;
+        if (size == 0) {
+            return null;
+        }
         if ((size < items.length / 4) && (size > 4)) {
             resizeDown(items.length / 4);
         }
@@ -80,7 +82,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
     @Override
     public T removeLast() {
-        if (size == 0) return null;
+        if (size == 0) {
+            return null;
+        }
         if ((size < items.length / 4) && (size > 4)) {
             resizeDown(items.length / 4);
         }
@@ -93,7 +97,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
     @Override
     public T get(int index) {
-        if (index >= size || index < -1) return null;
+        if (index >= size || index < - 1) {
+            return null;
+        }
         int target = front + 1 + index;
         return items[target];
     }
