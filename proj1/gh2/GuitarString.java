@@ -1,6 +1,5 @@
 package gh2;
 
-import deque.ArrayDeque;
 import deque.Deque;
 import deque.LinkedListDeque;
 
@@ -13,7 +12,7 @@ public class GuitarString {
     private static final double DECAY = .996; // energy decay factor
 
     /* Buffer for storing sound data. */
-    Deque<Double> buffer;
+    private Deque<Double> buffer;
 
     /* Create a guitar string of the given frequency.  */
     public GuitarString(double frequency) {
@@ -39,7 +38,7 @@ public class GuitarString {
      * the Karplus-Strong algorithm.
      */
     public void tic() {
-        double newDouble = (buffer.removeFirst() + buffer.get(1)) / 2 * DECAY;
+        double newDouble = (buffer.removeFirst() + buffer.get(0)) / 2 * DECAY;
         buffer.addLast(newDouble);
     }
 

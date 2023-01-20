@@ -20,8 +20,12 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         if (front == -1) {
             resize(2 * items.length);
         }
+        if (size == 0) {
+            front = items.length / 2 - 1;
+            rear = items.length / 2;
+        }
         items[front] = item;
-        front --;
+        front--;
         size++;
     }
 
@@ -30,6 +34,10 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         if (rear == items.length) {
             resize(2 * items.length);
         }
+        if (size == 0) {
+            rear = items.length / 2;
+            front = items.length / 2 - 1;
+        }
         items[rear] = item;
         rear++;
         size++;
@@ -37,11 +45,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
     private void resize(int capacity) {
         T[] temp = (T[]) new Object[capacity];
-        int frontCount = items.length/2-1 - front;
+        int frontCount = items.length / 2-1 - front;
         int middle = capacity / 2;
         System.arraycopy(items, front + 1, temp, middle - frontCount, size);
-        front = capacity/2 - (items.length / 2 - front);
-        rear = capacity/2 + (rear - items.length / 2);
+        front = middle - frontCount - 1;
+        rear = middle - frontCount + size;
         items = temp;
     }
 
@@ -50,9 +58,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         System.arraycopy(items, front + 1, temp, 0, capacity);
         front = -1;
         rear = capacity - 1;
-        size = capacity - 1;
         items = temp;
     }
+
     public int size() {
         return size;
     }
@@ -60,26 +68,26 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     @Override
     public T removeFirst() {
         if (size == 0) return null;
-        if ((size < items.length / 4) && (size > 4)){
+        if ((size < items.length / 4) && (size > 4)) {
             resizeDown(items.length / 4);
         }
         T target = items[front + 1];
         items[front + 1] = null;
         front++;
-        size --;
+        size--;
         return target;
     }
 
     @Override
     public T removeLast() {
         if (size == 0) return null;
-        if ((size < items.length / 4) && (size > 4)){
+        if ((size < items.length / 4) && (size > 4)) {
             resizeDown(items.length / 4);
         }
         T target = items[rear - 1];
         items[rear - 1] = null;
-        rear --;
-        size --;
+        rear--;
+        size--;
         return target;
     }
 
@@ -94,7 +102,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     public void printDeque() {
         int curr = 0;
         String res = "";
-        while(curr < size) {
+        while (curr < size) {
             res += get(curr) + " ";
             curr++;
         }
@@ -154,5 +162,36 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
 
     public Iterator<T> iterator() {
         return new MyArrayIterator();
+    }
+
+    public static void main(String[] args) {
+        ArrayDeque<Integer> deque = new ArrayDeque<>();
+        deque.addFirst(1);
+        deque.addFirst(2);
+        deque.addLast(7);
+        deque.addLast(8);
+        deque.addFirst(1);
+        deque.addFirst(2);
+        deque.addLast(7);
+        deque.addLast(8);
+        deque.addFirst(1);
+        deque.addFirst(2);
+        deque.addLast(7);
+        deque.addLast(8);
+        deque.addFirst(1);
+        deque.addFirst(2);
+        deque.addLast(7);
+        deque.addLast(8);
+
+        deque.removeFirst();
+        deque.removeFirst();
+        deque.removeFirst();
+        deque.removeFirst();
+        deque.removeFirst();
+        deque.removeFirst();
+        deque.removeFirst();
+        deque.removeFirst();
+        deque.removeFirst();
+        deque.removeFirst();
     }
 }

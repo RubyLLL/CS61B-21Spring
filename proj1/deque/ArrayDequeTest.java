@@ -118,27 +118,27 @@ public class ArrayDequeTest {
     @Test
     public void randomizedTest() {
         ArrayDeque<Integer> L = new ArrayDeque<>();
+        java.util.ArrayDeque<Integer> ref = new java.util.ArrayDeque<>();
+
         int N = 10000;
         for (int i = 0; i < N; i += 1) {
-            int operationNumber = StdRandom.uniform(0, 6);
+            int operationNumber = StdRandom.uniform(0, 5);
             if (operationNumber == 0) {
-                // addLast
                 int randVal = StdRandom.uniform(0, 100);
                 L.addLast(randVal);
+                ref.addLast(randVal);
             } else if (operationNumber == 1) {
-                // size
                 int size = L.size();
+                int sizeRef = ref.size();
+                assertEquals(sizeRef, size);
             } else if (operationNumber == 2 && L.size() > 0) {
                 int randVal = StdRandom.uniform(0, 100);
                 L.addFirst(randVal);
+                ref.addFirst(randVal);
             } else if (operationNumber == 3 && L.size() > 0) {
-                L.removeLast();
+                assertEquals(ref.removeLast(), L.removeLast());
             } else if (operationNumber == 4 && L.size() > 0) {
-                L.removeFirst();
-            } else if (operationNumber == 5 && L.size() > 0) {
-                // the program should not crash even if going beyond its size limit
-                int randVal = StdRandom.uniform(0, L.size()+1);
-                L.get(randVal);
+                assertEquals(ref.removeFirst(), L.removeFirst());
             }
         }
     }
