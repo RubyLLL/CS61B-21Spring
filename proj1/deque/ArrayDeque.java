@@ -97,7 +97,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
     @Override
     public T get(int index) {
-        if (index >= size || index < - 1) {
+        if (index >= size || index < -1) {
             return null;
         }
         int target = front + 1 + index;
@@ -129,7 +129,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
 
-         for (int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             if (!get(i).equals(deque.get(i))) {
                 return false;
             }
@@ -140,7 +140,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private class MyArrayIterator implements Iterator<T> {
         int curr;
 
-        public MyArrayIterator() {
+        MyArrayIterator() {
             curr = front + 1;
         }
 
