@@ -1,6 +1,8 @@
 package deque;
 
-public class ArrayDeque<T> implements Deque<T> {
+import java.util.Iterator;
+
+public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     private T[] items;
     private int front;
     private int rear;
@@ -43,6 +45,7 @@ public class ArrayDeque<T> implements Deque<T> {
         return size;
     }
 
+    // TODO: implement size down
     @Override
     public T removeFirst() {
         if(size == 0) return null;
@@ -53,6 +56,7 @@ public class ArrayDeque<T> implements Deque<T> {
         return target;
     }
 
+    // TODO: implement size down
     @Override
     public T removeLast() {
         if(size == 0) return null;
@@ -82,20 +86,58 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
     public boolean equals(Object o){
-        if (this == o) return true;
-        if (o == null || getClass()!= o.getClass()) return false;
+        if(this == o){
+            return true;
+        }
+        if(!(o instanceof ArrayDeque)){
+            return false;
+        }
 
         ArrayDeque<?> arrayDeque = (ArrayDeque<?>) o;
         if (size!= arrayDeque.size) return false;
 
         for(int i = 0; i < size; i++){
-            if(!get(i).equals(arrayDeque.get(i))) return false;
+            if(!get(i).equals(arrayDeque.get(i))) {
+                return false;
+            }
         }
         return true;
     }
 
-    // TODO Auto-generated method stub
-    public Iterator<T> iterator(){ return null; }
+    private class MyArrayIterator implements Iterator<T> {
+        int curr;
 
-    public static void main(String[] args){}
+        public MyArrayIterator(){
+            curr = front + 1;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return curr < rear;
+        }
+
+        @Override
+        public T next() {
+            if(!hasNext()) {
+                return null;
+            }
+            T result =  items[curr];
+            if(curr == 0){ // front done, moves to rear
+                curr = items.length / 2;
+            } else if(curr <= items.length / 2 - 1){
+                curr ++;
+            } else if(curr <= items.length){
+                curr ++;
+            }
+            return result;
+        }
+    }
+
+    public Iterator<T> iterator(){
+        return new MyArrayIterator();
+    }
+
+    public static void main(String[] args){
+
+    }
 }
