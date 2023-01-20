@@ -7,9 +7,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
     private int size;
 
     private static class Node<T> {
-        public T item;
-        public Node<T> next;
-        public Node<T> prev;
+        private T item;
+        private Node<T> next;
+        private Node<T> prev;
 
         public Node(T item, Node<T> next, Node<T> prev) {
             this.item = item;
@@ -98,7 +98,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         if(index > size){
             return null;
         }
-        Node<T> curr = sentinel;
+        Node<T> curr = sentinel.next;
         while(index > 0){
             curr = curr.next;
             index--;
@@ -106,21 +106,21 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         return curr.item;
     }
 
+    @Override
     public boolean equals(Object o){
         if(this == o){
             return true;
         }
-        if(o == null || !(o instanceof LinkedListDeque)){
+        if(o == null || !(o instanceof Deque)){
             return false;
         }
-
-        LinkedListDeque<?> linkedListDeque = (LinkedListDeque<?>) o;
-        if(size != linkedListDeque.size){
+        Deque<?> deque = (Deque<?>) o;
+        if (size != deque.size()) {
             return false;
         }
 
         for(int i = 0; i < size; i++){
-            if(!get(i).equals(linkedListDeque.get(i))){
+            if(!get(i).equals(deque.get(i))){
                 return false;
             }
         }
@@ -151,7 +151,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         return new MyLLIterator();
     }
 
-    private T getRecursive(int index){
+    public T getRecursive(int index){
         if(index >= size){
             return null;
         }
@@ -162,26 +162,4 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         }
         return getRecursive(index - 1);
     }
-
-    public static void main(String[] args){
-        LinkedListDeque<Integer> linkedListDeque = new LinkedListDeque<>();
-        linkedListDeque.addFirst(1);
-        linkedListDeque.addFirst(2);
-        linkedListDeque.addFirst(3);
-        linkedListDeque.addFirst(4);
-        linkedListDeque.addFirst(5);
-        linkedListDeque.addLast(6);
-        linkedListDeque.addLast(7);
-        linkedListDeque.addLast(8);
-        linkedListDeque.addLast(9);
-
-        Iterator<Integer> iterator = linkedListDeque.iterator();
-//        while(iterator.hasNext()){
-//            System.out.println(iterator.next());
-//        }
-        for(Integer i : linkedListDeque){
-            System.out.println(i);
-        }
-    }
-
 }
