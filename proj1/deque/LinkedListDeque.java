@@ -63,9 +63,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
 
     @Override
     public void printDeque() {
-        String rec = "";
+        StringBuilder rec = new StringBuilder(" ");
         for (Node<T> node = sentinel.next; node != sentinel; node = node.next) {
-            rec += node.item + " ";
+            rec.append(node.item).append(" ");
         }
         System.out.println(rec);
     }
@@ -114,17 +114,14 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         if (this == o) {
             return true;
         }
-        if (o == null || !(o instanceof Deque)) {
-            return false;
-        }
-        Deque<?> deque = (Deque<?>) o;
-        if (size != deque.size()) {
-            return false;
-        }
-
-        for (int i = 0; i < size; i++) {
-            if (!get(i).equals(deque.get(i))) {
+        if (o instanceof Deque deque) {
+            if (this.size != deque.size()) {
                 return false;
+            }
+            for (int i = 0; i < size; i++) {
+                if (!get(i).equals(deque.get(i))) {
+                    return false;
+                }
             }
         }
         return true;

@@ -107,9 +107,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     @Override
     public void printDeque() {
         int curr = 0;
-        String res = "";
+        StringBuilder res = new StringBuilder("");
         while (curr < size) {
-            res += get(curr) + " ";
+            res.append(get(curr)).append(" ");
             curr++;
         }
         System.out.println(res);
