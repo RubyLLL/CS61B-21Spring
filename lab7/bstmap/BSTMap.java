@@ -2,27 +2,23 @@ package bstmap;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Stack;
 
-public class BSTMap<Key extends Comparable<Key>, Value> implements Map61B<Key, Value> {
-    BSTNode root;
-    int size;
+public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>, Iterable<K> {
+    private BSTNode root;
+    private int size;
 
     public BSTMap() {
         size = 0;
         root = null;
     }
 
-    public BSTMap(BSTNode root) {
-        size = 1;
-        root = root;
-    }
-
-    class BSTNode {
-        Key key;
-        Value value;
+    private class BSTNode {
+        K key;
+        V value;
         BSTNode left, right;
 
-        public BSTNode(Key key, Value value) {
+        BSTNode(K key, V value) {
             this.key = key;
             this.value = value;
         }
@@ -35,11 +31,11 @@ public class BSTMap<Key extends Comparable<Key>, Value> implements Map61B<Key, V
     }
 
     @Override
-    public boolean containsKey(Key key) {
+    public boolean containsKey(K key) {
         return get(key) != null;
     }
 
-    private Value get(BSTNode root, Key key) {
+    private V get(BSTNode root, K key) {
         if (root == null) {
             return null;
         }
@@ -53,7 +49,7 @@ public class BSTMap<Key extends Comparable<Key>, Value> implements Map61B<Key, V
     }
 
     @Override
-    public Value get(Key key) {
+    public V get(K key) {
         return get(root, key);
     }
 
@@ -63,11 +59,11 @@ public class BSTMap<Key extends Comparable<Key>, Value> implements Map61B<Key, V
     }
 
     @Override
-    public void put(Key key, Value value) {
+    public void put(K key, V value) {
         root = put(root, key, value);
     }
 
-    private BSTNode put(BSTNode root, Key key, Value value) {
+    private BSTNode put(BSTNode root, K key, V value) {
 
         if (root == null) {
             return new BSTNode(key, value);
@@ -83,27 +79,49 @@ public class BSTMap<Key extends Comparable<Key>, Value> implements Map61B<Key, V
     }
 
     @Override
-    public Set<Key> keySet() {
+    public Set<K> keySet() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Value remove(Key key) {
+    public V remove(K key) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Value remove(Key key, Value value) {
+    public V remove(K key, V value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Iterator<Key> iterator() {
-        throw new UnsupportedOperationException();
+    public Iterator<K> iterator() {
+        return new myBSTMaoKeyIterator(root);
     }
 
-    public static void main(String[] args) {
-        BSTMap<String, Integer> b = new BSTMap<String, Integer>();
-        b.put("hi", null);
+    private class myBSTMaoKeyIterator implements Iterator<K> {
+        Stack<BSTNode> stack;
+        BSTNode cur;
+
+        myBSTMaoKeyIterator(BSTNode root) {
+            this.cur = root;
+            this.stack = new Stack<BSTNode>();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return cur != null || !stack.isEmpty();
+        }
+
+        @Override
+        public K next() {
+            while (cur != null) {
+                stack.push(cur);
+                cur = cur.left;
+            }
+            cur = stack.pop();
+            BSTNode node = cur;
+            cur = cur.right;
+            return node.key;
+        }
     }
 }
