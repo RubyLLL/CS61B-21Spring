@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Stack;
 
+import static org.junit.Assert.assertTrue;
+
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     private BSTNode root;
     private int size;
@@ -64,7 +66,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     }
 
     private BSTNode put(BSTNode root, K key, V value) {
-        if (root == null) {
+        if (root == null || root.key == null) {
             size++;
             return new BSTNode(key, value);
         }
@@ -93,17 +95,70 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     public Set<K> keySet() {
-        throw new UnsupportedOperationException();
+        Set<K> set = new java.util.HashSet<>();
+        Iterator<K> it = iterator();
+        while (it.hasNext()) {
+            set.add(it.next());
+        }
+        return set;
     }
 
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        return remove(key, root);
     }
 
     @Override
     public V remove(K key, V value) {
         throw new UnsupportedOperationException();
+    }
+
+    private V remove(K key, BSTNode node) {
+        V result = null;
+        if (node == null) {
+            return null;
+        }
+        if (key.compareTo(node.key) < 0) {
+            result = remove(key, node.left);
+        } else if (key.compareTo(node.key) > 0) {
+            result = remove(key, node.right);
+        } else {
+            result = node.value;
+            size--;
+            result = node.value;
+            if (node.left != null && node.right != null) {
+                BSTNode max = findMax(node.left);
+                node.key = max.key;
+                node.value = max.value;
+                remove(max.key, max);
+            } else if (node.left == null && node.right != null) {
+                node.key = node.right.key;
+                node.value = node.right.value;
+                node.right = node.right.right;
+                node.right = null;
+            } else if (node.right == null && node.left != null) {
+                node.key = node.left.key;
+                node.value = node.left.value;
+                node.left = node.left.left;
+                node.left = null;
+            } else {
+                node.key = null;
+                node.value = null;
+            }
+
+        }
+        return result;
+    }
+
+    /**
+     * Returns the largest node in the left subt
+     * @return the subtree after having the largest node removed
+     */
+    private BSTNode findMax(BSTNode node) {
+        while (node.right != null) {
+            node = node.right;
+        }
+        return node;
     }
 
     @Override
@@ -136,5 +191,13 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
             cur = cur.right;
             return node.key;
         }
+    }
+
+    public static void main(String[] args) {
+        BSTMap rightChild = new BSTMap();
+        rightChild.put('A', 1);
+        rightChild.put('B', 2);
+        Integer result = (Integer) rightChild.remove('A');
+        assertTrue(result.equals(Integer.valueOf(1)));
     }
 }
