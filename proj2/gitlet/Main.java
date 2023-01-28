@@ -9,15 +9,19 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
+        if (args.length < 1) {
+            throw new GitletException("Please enter a command.");
+        }
         String firstArg = args[0];
         switch(firstArg) {
             case "init":
-                // TODO: handle the `init` command
+                Repository.init();
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
                 break;
+            default:
+                throw new GitletException("No command with that name exists.");
             // TODO: FILL THE REST IN
         }
     }
