@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.HashMap;
 
 import static gitlet.Utils.*;
 
@@ -27,6 +28,7 @@ public class Repository {
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File GITLET_COMMIT = join(GITLET_DIR, "commits");
+    public static final File GITLET_STAGE = join(GITLET_DIR, "stage");
 
     public static void init() {
         //TODO: init
@@ -35,27 +37,42 @@ public class Repository {
          * a commit that contains no files and has the commit message initial commit
          */
         initDirectory();
-        BSTMap files = new BSTMap();
-        files.saveFiles(GITLET_COMMIT);
+        HashMap files = new HashMap();
         // Commit commit = new Commit("initial commit", Instant.EPOCH);
     }
 
     private static void initDirectory() {
-        File ref = new File(GITLET_DIR, "ref");
         if (GITLET_DIR.exists()) {
             System.out.println("Reinitialized existing Git repository in " + GITLET_DIR);
         } else {
             GITLET_DIR.mkdir();
             GITLET_COMMIT.mkdir();
-            ref.mkdir();
+            GITLET_STAGE.mkdir();
             System.out.println("Initialized empty Git repository in" + GITLET_DIR);
         }
     }
 
+    private static String initCommit() {
+        HashMap f = new HashMap<String, String>();
+        String sha1 = Utils.sha1(f);
+        Commit commit = new Commit("initial commit", Instant.EPOCH, null, sha1);
+        commit.save();
+        return sha1;
+    }
 
-    public static void add() {
+
+    public static void add(String fileName) {
+        File file = new File(GITLET_DIR, fileName);
         if (!GITLET_DIR.exists()) {
             throw new GitletException("Not in an initialized Gitlet directory.");
         }
+        if (!file.exists()) {
+            throw new GitletException("File does not exist.");
+        }
+        //TODO: check file exists in the previous Commit object
+
+        // TODO: check if there is already a STage object in use
+
+
     }
 }
