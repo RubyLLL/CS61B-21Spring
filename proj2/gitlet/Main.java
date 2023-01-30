@@ -36,6 +36,13 @@ public class Main {
                 String message = args[1];
                 Repository.commit(message, "master");
                 break;
+            case "branch":
+                if (args.length != 2) {
+                    throw new GitletException("Usage: java gitlet.Main branch [branch name].");
+                }
+                String branch = args[1];
+                Repository.branch(branch);
+                break;
             default:
                 throw new GitletException("No command with that name exists.");
             // TODO: FILL THE REST IN

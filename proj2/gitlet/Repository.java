@@ -69,7 +69,7 @@ public class Repository {
     public static void add(String fileName) {
         File file = new File(CWD, fileName);
         if (!GITLET_DIR.exists()) {
-            throw new GitletException("Not in an initialized Gitlet directory.");
+            System.out.println("Not in an initialized Gitlet directory.");
         }
         Stage.add(file);
     }
@@ -77,6 +77,25 @@ public class Repository {
     public static void remove(String fileName) {
         File file = new File(CWD, fileName);
         Stage.remove(file);
+    }
+
+    /**
+     * Creates a new branch with the given name, and points it at the current head commit.
+     */
+    public static void branch(String branch) {
+        File[] files = GITLET_REFS.listFiles(File::isDirectory);
+        if (files != null) {
+            for (File file : files) {
+                if (file.getName().equals(branch)) {
+                    System.out.println("A branch with that name already exists.");
+                }
+            }
+        }
+        File b = new File(GITLET_REFS, branch);
+        b.mkdir();
+        Commit c = Commit.get();
+        c.setBranch(branch);
+        Commit.moveHead(c);
     }
 
     public static void commit(String message, String branch) {

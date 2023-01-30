@@ -64,7 +64,7 @@ public class Stage implements Serializable {
      */
     public static void add(File f) {
         if (!f.exists()) {
-            throw new GitletException("File does not exist.");
+            System.out.println("File does not exist.");
         }
         Stage s = get();
         Blob b = Blob.generateBlob(f);

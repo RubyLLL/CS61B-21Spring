@@ -67,7 +67,8 @@ public class Commit implements Serializable {
      * by default at master branch
      */
     public static void init() {
-        newBranch("master");
+        File master = new File(GITLET_REFS, "master");
+        master.mkdir();
         Commit commit = new Commit();
         commit.id =  commit.generateCommitId();
         save(commit);
@@ -97,26 +98,6 @@ public class Commit implements Serializable {
     private static String dateToTimeStamp(Date date) {
         DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
         return dateFormat.format(date);
-    }
-
-    public static boolean branchExists(String name){
-        File[] files = GITLET_REFS.listFiles(File::isFile);
-        if (files != null) {
-            for (File file : files) {
-                if (file.getName().equals(name)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static void newBranch(String name) {
-        if (branchExists(name)) {
-            throw new GitletException("A branch with that name already exists.");
-        }
-        File newBranch = new File(GITLET_REFS, name);
-        newBranch.mkdir();
     }
 
     public static Commit retrieveFromHEAD() {
@@ -153,7 +134,7 @@ public class Commit implements Serializable {
      *
      * @param commit
      */
-    private static void moveHead(Commit c) {
+    public static void moveHead(Commit c) {
         File folder = new File(GITLET_REFS, c.branch);
         File f = new File(folder, c.id);
         Utils.writeObject(f, c);
@@ -169,6 +150,10 @@ public class Commit implements Serializable {
 
     public List<String> getParentIDs() {
         return parentIds;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     /**
