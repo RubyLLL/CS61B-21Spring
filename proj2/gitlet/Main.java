@@ -22,13 +22,19 @@ public class Main {
                     throw new GitletException("Usage: java gitlet.Main add [file name].");
                 }
                 Repository.add(args[1]);
-                // TODO: handle the `add [filename]` command
                 break;
             case "rm":
                 if (args.length != 2) {
                     throw new GitletException("Usage: java gitlet.Main remove [file name].");
                 }
                 Repository.remove(args[1]);
+                break;
+            case "commit":
+                if (args.length != 2) {
+                    throw new GitletException("Usage: java gitlet.Main remove [file name].");
+                }
+                String message = args[1];
+                Repository.commit(message, "master");
                 break;
             default:
                 throw new GitletException("No command with that name exists.");

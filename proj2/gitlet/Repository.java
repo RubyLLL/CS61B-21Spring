@@ -78,4 +78,8 @@ public class Repository {
         File file = new File(CWD, fileName);
         Stage.remove(file);
     }
+
+    public static void commit(String message, String branch) {
+        Commit.commit(message, branch);
+    }
 }

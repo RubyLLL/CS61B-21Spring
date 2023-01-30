@@ -53,13 +53,11 @@ public class Commit implements Serializable {
         this.committedFiles = new HashMap<String, String>();
     }
 
-    public Commit(String message, String timestamp,
-                  List<String> parentIds, String id,
+    public Commit(String message, String timestamp, List<String> parentIds,
                   HashMap<String, String> committedFiles, String branch) {
         this.message = message;
         this.timestamp = timestamp;
         this.parentIds = parentIds;
-        this.id = id;
         this.committedFiles = committedFiles;
         this.branch = branch;
     }
@@ -73,10 +71,28 @@ public class Commit implements Serializable {
         Commit commit = new Commit();
         commit.id =  commit.generateCommitId();
         save(commit);
-        commit.moveHead();
+        moveHead(commit);
         HEAD(commit);
     }
 
+    public static void commit(String message, String branch) {
+        Commit c = get();
+        Stage s = Stage.get();
+        //TODO: change branch
+        HashMap<String, String> filesRemained = MyUtils.compareMap(c.committedFiles, s.removedFiles);
+        HashMap<String, String> committedFiles = new HashMap<String, String>();
+        committedFiles.putAll(filesRemained);
+        committedFiles.putAll(s.stagedFiles);
+        String timestamp = dateToTimeStamp(new Date());
+        List<String> parentIds = c.getParentIDs();
+        parentIds.add(c.id);
+        Commit commit = new Commit(message, timestamp, parentIds, committedFiles, branch);
+        commit.id = commit.generateCommitId();
+        save(commit);
+        moveHead(commit );
+        HEAD(commit);
+        Stage.removeStage();
+    }
 
     private static String dateToTimeStamp(Date date) {
         DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
@@ -103,7 +119,7 @@ public class Commit implements Serializable {
         newBranch.mkdir();
     }
 
-    public static Commit retriveFromHEAD() {
+    public static Commit retrieveFromHEAD() {
         File f = new File(GITLET_HEADS, "head");
         return Utils.readObject(f, Commit.class);
     }
@@ -120,24 +136,31 @@ public class Commit implements Serializable {
      * @return
      */
     public static void save(Commit c) {
-        //TODO: save the commit object somewhere in .gitlet
-        // after done so, empty .gitlet/stage
         File f = new File(GITLET_OBJ, c.id);
         Utils.writeObject(f, c);
     }
 
-    private String generateCommitId() {
-        return Utils.sha1("C" + this.timestamp + parentIds.toString() + committedFiles.toString());
+    /**
+     * Get the commit from .gitlet/HEAD
+     * @return
+     */
+    public static Commit get() {
+        File f = new File(GITLET_HEADS, "head");
+        return Utils.readObject(f, Commit.class);
     }
 
     /**
      *
      * @param commit
      */
-    private void moveHead() {
-        File folder = new File(GITLET_REFS, this.branch);
-        File f = new File(folder, this.id);
-        Utils.writeObject(f, this);
+    private static void moveHead(Commit c) {
+        File folder = new File(GITLET_REFS, c.branch);
+        File f = new File(folder, c.id);
+        Utils.writeObject(f, c);
+    }
+
+    private String generateCommitId() {
+        return Utils.sha1("C" + this.timestamp + parentIds.toString() + committedFiles.toString());
     }
 
     public HashMap<String, String> getCommittedFiles() {
@@ -148,5 +171,29 @@ public class Commit implements Serializable {
         return parentIds;
     }
 
-    /* TODO: fill in the rest of this class. */
+    /**
+     *     private String message;
+     *     private String timestamp;
+     *     private String id; // the 40-digit sha1 code
+     *     private String branch; // the name of the branch this commit is in
+     *     private HashMap<String, String> committedFiles; // all blobs associated with this commit
+     *     private List<String> parentIds;
+     * @return
+     */
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Message: ").append(message);
+        sb.append("\n");
+        sb.append("Timestamp: ").append(timestamp);
+        sb.append("\n");
+        sb.append("Commit id: ").append(id);
+        sb.append("\n");
+        sb.append("Branch: ").append(branch);
+        sb.append("\n");
+        sb.append("Committed Files: ").append(committedFiles);
+        sb.append("\n");
+        sb.append("Parent IDs: ").append(parentIds);
+        sb.append("\n");
+        return sb.toString();
+    }
 }

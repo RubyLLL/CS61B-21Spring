@@ -40,7 +40,7 @@ public class Stage implements Serializable {
             // removedFiles ? - getRemoved()
             // modifiedFiles ? - getModified()
             // untrackedFiles ? - getUntracked()
-            Commit c = Commit.retriveFromHEAD();
+            Commit c = Commit.retrieveFromHEAD();
             s.currentCommit = c.getCommittedFiles();
             s.stagedFiles = new HashMap<>();
             s.getUntracked();
@@ -54,7 +54,8 @@ public class Stage implements Serializable {
      * remove the stage, usually happens after a commit
      */
     public static void removeStage() {
-
+        File f = new File(GITLET_STAGE, "current");
+        f.delete();
     }
 
     /**
@@ -161,8 +162,7 @@ public class Stage implements Serializable {
         return currentCommit.containsKey(b.getId());
     }
 
-    //TODO: change back to private later
-    public boolean alreadyTracked(Blob b) {
+    private boolean alreadyTracked(Blob b) {
         return stagedFiles.containsKey(b.getId());
     }
 
