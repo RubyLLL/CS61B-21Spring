@@ -43,6 +43,13 @@ public class Main {
                 String branch = args[1];
                 Repository.branch(branch);
                 break;
+            case "rm-branch":
+                if (args.length != 2) {
+                    throw new GitletException("Usage: java gitlet.Main rm-branch [branchname].");
+                }
+                branch = args[1];
+                Repository.removeBranch(branch);
+                break;
             default:
                 throw new GitletException("No command with that name exists.");
             // TODO: FILL THE REST IN

@@ -152,6 +152,10 @@ public class Commit implements Serializable {
         return parentIds;
     }
 
+    public String getBranch() {
+        return branch;
+    }
+
     public void setBranch(String branch) {
         this.branch = branch;
     }
