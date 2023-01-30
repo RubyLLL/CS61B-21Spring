@@ -72,10 +72,11 @@ public class Commit implements Serializable {
         newBranch("master");
         Commit commit = new Commit();
         commit.id =  commit.generateCommitId();
-        commit.save();
+        save(commit);
         commit.moveHead();
         HEAD(commit);
     }
+
 
     private static String dateToTimeStamp(Date date) {
         DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
@@ -112,6 +113,19 @@ public class Commit implements Serializable {
         Utils.writeObject(f, c);
     }
 
+    /**
+     * Save the commit object to the directory
+     * Returns a new commit object, set its variable files the copy of this one
+     * and parent to be this commit object
+     * @return
+     */
+    public static void save(Commit c) {
+        //TODO: save the commit object somewhere in .gitlet
+        // after done so, empty .gitlet/stage
+        File f = new File(GITLET_OBJ, c.id);
+        Utils.writeObject(f, c);
+    }
+
     private String generateCommitId() {
         return Utils.sha1("C" + this.timestamp + parentIds.toString() + committedFiles.toString());
     }
@@ -132,19 +146,6 @@ public class Commit implements Serializable {
 
     public List<String> getParentIDs() {
         return parentIds;
-    }
-
-    /**
-     * Save the commit object to the directory
-     * Returns a new commit object, set its variable files the copy of this one
-     * and parent to be this commit object
-     * @return
-     */
-    public void save() {
-        //TODO: save the commit object somewhere in .gitlet
-        // after done so, empty .gitlet/stage
-        File f = new File(GITLET_OBJ, this.id);
-        Utils.writeObject(f, this);
     }
 
     /* TODO: fill in the rest of this class. */

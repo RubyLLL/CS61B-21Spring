@@ -73,4 +73,9 @@ public class Repository {
         }
         Stage.add(file);
     }
+
+    public static void remove(String fileName) {
+        File file = new File(CWD, fileName);
+        Stage.remove(file);
+    }
 }

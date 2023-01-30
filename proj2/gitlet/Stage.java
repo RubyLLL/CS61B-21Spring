@@ -71,9 +71,27 @@ public class Stage implements Serializable {
             s.stagedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
             s.stagedFiles.put(b.getId(), f.getName());
             s.removedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
-            s.removedFiles.remove(b.getId());
+            s.untrackedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
+            s.modifiedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
         } else if (s.alreadyCommitted(b)) {
+            // if identical to the version in the current commit
+            // remove it from the staging area
             s.stagedFiles.remove(b.getId());
+        }
+        save(s);
+    }
+
+    public static void remove(File f) {
+        Stage s = get();
+        Blob b = Blob.generateBlob(f);
+        //Unstage the file if it is currently staged for addition.
+        if (s.alreadyTracked(b)) {
+            s.stagedFiles.remove(b.getId());
+        } else if (s.alreadyCommitted(b)) {
+            s.removedFiles.put(b.getId(), f.getName());
+            f.delete();
+        } else {
+            System.out.println("No reason to remove the file.");
         }
         save(s);
     }
@@ -143,7 +161,8 @@ public class Stage implements Serializable {
         return currentCommit.containsKey(b.getId());
     }
 
-    private boolean alreadyTracked(Blob b) {
+    //TODO: change back to private later
+    public boolean alreadyTracked(Blob b) {
         return stagedFiles.containsKey(b.getId());
     }
 
