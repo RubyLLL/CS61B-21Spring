@@ -3,61 +3,150 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 
-import static gitlet.Utils.join;
+import static gitlet.Repository.GITLET_STAGE;
 
+/* Structure inside our .gitlet directory
+ *   .gitlet
+ *      |--objects
+ *      |     |--commit and blob
+ *      |--refs
+ *      |     |--master
+ *      |--HEAD
+ *      |--stage
+ */
 public class Stage implements Serializable {
-
-    public static final File CWD = new File(System.getProperty("user.dir"));
-    /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final File GITLET_STAGE = join(GITLET_DIR, "stage");
 
     HashMap<String, String> untrackedFiles;
     HashMap<String, String> stagedFiles;
     HashMap<String, String> removedFiles;
     HashMap<String, String> modifiedFiles;
-    HashMap<String, String> deletedFiles;
+    HashMap<String, String> currentCommit;
 
-    Stage() {
-        untrackedFiles = new HashMap<String, String>();
-        stagedFiles = new HashMap<String, String>();
-    }
     /**
      * Returns the existing stage or creates a new one.
      * @return Stage
      */
-    public static Stage stage() {
+    public static Stage get() {
         File f = new File(GITLET_STAGE, "current");
+        Stage s;
+        if (f.exists()) {
+            s = Utils.readObject(f, Stage.class);
+        }
+        else {
+            s = new Stage();
+            // stagedFiles ? - add() should take care of this
+            // removedFiles ? - getRemoved()
+            // modifiedFiles ? - getModified()
+            // untrackedFiles ? - getUntracked()
+            Commit c = Commit.retriveFromHEAD();
+            s.currentCommit = c.getCommittedFiles();
+            s.stagedFiles = new HashMap<>();
+            s.getUntracked();
+            s.getModified();
+            s.getRemoved();
+        }
+        return s;
+    }
+
+    /**
+     * remove the stage, usually happens after a commit
+     */
+    public static void removeStage() {
+
+    }
+
+    /**
+     * add a new file to staging
+     * @param f
+     */
+    public static void add(File f) {
         if (!f.exists()) {
-            // TODO: untracked files should include everything in the folder but not in the previous commit
-            return new Stage();
+            throw new GitletException("File does not exist.");
         }
-    }
-
-    public void addFile(File file) {
-        String filename = file.getName();
-        String sha1 = Utils.sha1(file);
-        stage.put(filename, sha1);
-    }
-
-    public void removeFile(File file) {
-        String filename = file.getName();
-        stage.remove(filename);
-    }
-
-    public void serialize() {
-        File f = new File(GITLET_STAGE, "current");
-        Utils.writeObject(f, this);
-    }
-
-    public Stage deserialize() {
-        File f = new File(GITLET_STAGE, "current");
-        try {
-            Stage s = Utils.readObject(f, Stage.class);
-            return s;
-        } catch (Exception e) {
-            throw new GitletException(e.getMessage());
+        Stage s = get();
+        Blob b = Blob.generateBlob(f);
+        if (!s.alreadyCommitted(b) && !s.alreadyTracked(b)) {
+            s.stagedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
+            s.stagedFiles.put(b.getId(), f.getName());
+            s.removedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
+            s.removedFiles.remove(b.getId());
+        } else if (s.alreadyCommitted(b)) {
+            s.stagedFiles.remove(b.getId());
         }
+        save(s);
     }
+
+    /**
+     * save the stage object in GITLET_STAGE/current
+     */
+    public static void save(Stage s) {
+        File f = new File(GITLET_STAGE, "current");
+        Utils.writeObject(f, s);
+    }
+
+    /**
+     * Get all modified files
+     * Modified: files whose names present in currentCommit but the blob ids are different
+     * @return
+     */
+    private void getModified() {
+        List<File> files = MyUtils.scandir();
+        HashMap<String, String> hashMap = MyUtils.generateHashMap(files);
+        this.modifiedFiles = new HashMap<String, String>();
+    }
+
+    /**
+     * Get all untracked files
+     * Untracked: files that are NOT present in currentCommit or StagedFiles but in the directory
+     *            OR files that are in currentCommit but in removedFiles
+     * @return
+     */
+    private void getUntracked() {
+        List<File> files = MyUtils.scandir();
+        HashMap<String, String> hashMap = MyUtils.generateHashMap(files);
+        this.untrackedFiles = MyUtils.compareMap(hashMap, currentCommit, stagedFiles);
+        //TODO: files that are in currentCommit but also in removedFiles
+    }
+
+    private void getRemoved() {
+        //TODO: how to deal with this?
+        this.removedFiles = new HashMap<String, String>();
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Untracked Files: ");
+        sb.append(System.getProperty("line.separator"));
+        sb.append(untrackedFiles.toString());
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Staged Files: ");
+        sb.append(System.getProperty("line.separator"));
+        sb.append(stagedFiles.toString());
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Modified Files: ");
+        sb.append(System.getProperty("line.separator"));
+        sb.append(modifiedFiles.toString());
+        sb.append(System.getProperty("line.separator"));
+        sb.append("Removed Files: ");
+        sb.append(System.getProperty("line.separator"));
+        sb.append(removedFiles.toString());
+        return sb.toString();
+    }
+    /**
+     * check if the Blob is in the current commit
+     * @param b
+     * @return
+     */
+    private boolean alreadyCommitted(Blob b) {
+        return currentCommit.containsKey(b.getId());
+    }
+
+    private boolean alreadyTracked(Blob b) {
+        return stagedFiles.containsKey(b.getId());
+    }
+
+
+
 }

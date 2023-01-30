@@ -1,10 +1,8 @@
 package gitlet;
 
 import java.io.File;
-import java.time.Instant;
-import java.util.HashMap;
 
-import static gitlet.Utils.*;
+import static gitlet.Utils.join;
 
 // TODO: any imports you need here
 
@@ -14,6 +12,20 @@ import static gitlet.Utils.*;
  *
  *  @author TODO
  */
+
+/* Structure inside our .gitlet directory
+ *   .gitlet
+ *      |--objects
+ *      |     |--commit and blob
+ *      |--refs
+ *      |     |--master
+ *      |--HEAD
+ *      |--stage
+ */
+
+// --------------------------------
+//
+// --------------------------------
 public class Repository {
     /**
      * TODO: add instance variables here.
@@ -23,11 +35,12 @@ public class Repository {
      * variable is used. We've provided two examples for you.
      */
 
-    /** The current working directory. */
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final File GITLET_COMMIT = join(GITLET_DIR, "commits");
+    public static final File GITLET_OBJ = join(GITLET_DIR, "objects");
+    public static final File GITLET_REFS = join(GITLET_DIR, "refs");
+    public static final File GITLET_HEADS = join(GITLET_DIR, "HEAD");
     public static final File GITLET_STAGE = join(GITLET_DIR, "stage");
 
     public static void init() {
@@ -37,42 +50,27 @@ public class Repository {
          * a commit that contains no files and has the commit message initial commit
          */
         initDirectory();
-        HashMap files = new HashMap();
-        // Commit commit = new Commit("initial commit", Instant.EPOCH);
+        Commit.init();
     }
 
     private static void initDirectory() {
         if (GITLET_DIR.exists()) {
-            System.out.println("Reinitialized existing Git repository in " + GITLET_DIR);
+            System.out.println("A Gitlet version-control system already exists in the current directory.");
         } else {
             GITLET_DIR.mkdir();
-            GITLET_COMMIT.mkdir();
+            GITLET_OBJ.mkdir();
+            GITLET_REFS.mkdir();
+            GITLET_HEADS.mkdir();
             GITLET_STAGE.mkdir();
             System.out.println("Initialized empty Git repository in" + GITLET_DIR);
         }
     }
 
-    private static String initCommit() {
-        HashMap f = new HashMap<String, String>();
-        String sha1 = Utils.sha1(f);
-        Commit commit = new Commit("initial commit", Instant.EPOCH, null, sha1);
-        commit.save();
-        return sha1;
-    }
-
-
     public static void add(String fileName) {
-        File file = new File(GITLET_DIR, fileName);
+        File file = new File(CWD, fileName);
         if (!GITLET_DIR.exists()) {
             throw new GitletException("Not in an initialized Gitlet directory.");
         }
-        if (!file.exists()) {
-            throw new GitletException("File does not exist.");
-        }
-        //TODO: check file exists in the previous Commit object
-
-        // TODO: check if there is already a STage object in use
-
-
+        Stage.add(file);
     }
 }

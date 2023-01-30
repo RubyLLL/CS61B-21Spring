@@ -18,6 +18,11 @@ public class Main {
                 Repository.init();
                 break;
             case "add":
+                if (args.length != 2) {
+                    throw new GitletException("Usage: java gitlet.Main add [file name].");
+                }
+                String fileName = args[1];
+                Repository.add(fileName);
                 // TODO: handle the `add [filename]` command
                 break;
             default:
