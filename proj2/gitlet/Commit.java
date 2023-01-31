@@ -80,10 +80,10 @@ public class Commit implements Serializable {
         Commit c = get();
         Stage s = Stage.get();
         //TODO: change branch
-        HashMap<String, String> filesRemained = MyUtils.compareMap(c.committedFiles, s.removedFiles);
+        HashMap<String, String> filesRemained = MyUtils.compareMap(c.committedFiles, s.getRemovedFiles());
         HashMap<String, String> committedFiles = new HashMap<String, String>();
         committedFiles.putAll(filesRemained);
-        committedFiles.putAll(s.stagedFiles);
+        committedFiles.putAll(s.getStagedFiles());
         String timestamp = dateToTimeStamp(new Date());
         List<String> parentIds = c.getParentIDs();
         parentIds.add(c.id);

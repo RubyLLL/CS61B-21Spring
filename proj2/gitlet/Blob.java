@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,8 +21,32 @@ public class Blob implements Serializable {
         this.id = "";
     }
 
-    public static Blob retrive(String id) {
-        return null;
+    /**
+     * get the blob from the specified directory
+     * @param id
+     * @param from
+     * @return
+     */
+    public static Blob get(String id, File from) {
+        File f = new File(from, id);
+        return Utils.readObject(f, Blob.class);
+    }
+
+    /**
+     * Save the blob to the specified directory
+     * @param b
+     */
+    public static void save(Blob b, File to) {
+        File f = new File(to, b.id);
+        Utils.writeObject(f, b);
+    }
+
+    /**
+     * Remove the blob from the specified directory
+     */
+    public static void remove(Blob b, File from) {
+        File f = new File(from, b.id);
+        f.delete();
     }
 
     /**
@@ -32,7 +58,7 @@ public class Blob implements Serializable {
         if (!f.exists()) {
             throw new GitletException("File does not exist.");
         }
-        byte[] bytes = Utils.serialize(f);
+        byte[] bytes = Utils.readContents(f);
         Blob b = new Blob(f.getName(),f.getPath(), bytes);
         b.id = b.generateBlobId();
         return b;
@@ -46,6 +72,24 @@ public class Blob implements Serializable {
         return blobs;
     }
 
+    /**
+     * Recover the file from the Blob, save to the given filepath
+     * @return
+     */
+    public void toFile(File filepath) {
+        String filename = this.filename;
+        String content = new String(bytes);
+        File dest = Utils.join(filepath, filename);
+        try {
+            dest.createNewFile();
+            FileWriter myWriter = new FileWriter(dest);
+            myWriter.write(content);
+            myWriter.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String getId() {
         return this.id;
     }
@@ -56,6 +100,10 @@ public class Blob implements Serializable {
 
     public String getFilename() {
         return this.filename;
+    }
+
+    public byte[] getBytes() {
+        return this.bytes;
     }
 
     public String generateBlobId() {

@@ -6,11 +6,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import static gitlet.Repository.GITLET_STAGE;
+import static gitlet.Repository.STAGE_BLOBS;
 
 /* Structure inside our .gitlet directory
  *   .gitlet
  *      |--objects
- *      |     |--commit and blob
+ *      |     |--commitID
+ *      |         |--commit object
+ *                |-- blob objects
  *      |--refs
  *      |     |--master
  *      |--HEAD
@@ -18,11 +21,11 @@ import static gitlet.Repository.GITLET_STAGE;
  */
 public class Stage implements Serializable {
 
-    HashMap<String, String> untrackedFiles;
-    HashMap<String, String> stagedFiles;
-    HashMap<String, String> removedFiles;
-    HashMap<String, String> modifiedFiles;
-    HashMap<String, String> currentCommit;
+    private HashMap<String, String> untrackedFiles;
+    private HashMap<String, String> stagedFiles;
+    private HashMap<String, String> removedFiles;
+    private HashMap<String, String> modifiedFiles;
+    private HashMap<String, String> currentCommit;
 
     /**
      * Returns the existing stage or creates a new one.
@@ -43,19 +46,11 @@ public class Stage implements Serializable {
             Commit c = Commit.retrieveFromHEAD();
             s.currentCommit = c.getCommittedFiles();
             s.stagedFiles = new HashMap<>();
-            s.getUntracked();
-            s.getModified();
-            s.getRemoved();
+            s.setUntracked();
+            s.setModified();
+            s.setRemoved();
         }
         return s;
-    }
-
-    /**
-     * remove the stage, usually happens after a commit
-     */
-    public static void removeStage() {
-        File f = new File(GITLET_STAGE, "current");
-        f.delete();
     }
 
     /**
@@ -63,6 +58,7 @@ public class Stage implements Serializable {
      * @param f
      */
     public static void add(File f) {
+        //TODO: we are not saving the blobs
         if (!f.exists()) {
             System.out.println("File does not exist.");
             return;
@@ -70,6 +66,7 @@ public class Stage implements Serializable {
         Stage s = get();
         Blob b = Blob.generateBlob(f);
         if (!s.alreadyCommitted(b) && !s.alreadyTracked(b)) {
+            Blob.save(b, STAGE_BLOBS);
             s.stagedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
             s.stagedFiles.put(b.getId(), f.getName());
             s.removedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
@@ -79,11 +76,13 @@ public class Stage implements Serializable {
             // if identical to the version in the current commit
             // remove it from the staging area
             s.stagedFiles.remove(b.getId());
+            Blob.remove(b, STAGE_BLOBS);
         }
         save(s);
     }
 
     public static void remove(File f) {
+        //TODO: remove blobs as well
         Stage s = get();
         Blob b = Blob.generateBlob(f);
         //Unstage the file if it is currently staged for addition.
@@ -107,11 +106,35 @@ public class Stage implements Serializable {
     }
 
     /**
+     * remove the stage, usually happens after a commit
+     */
+    public static void removeStage() {
+        File f = new File(GITLET_STAGE, "current");
+        f.delete();
+    }
+
+    /**
+     * Returns the staged files for the current stage
+     * @return stagedFiles
+     */
+    public HashMap<String, String> getStagedFiles() {
+        return this.stagedFiles;
+    }
+
+    /**
+     * Returns the removed files for the current stage
+     * @return
+     */
+    public HashMap<String, String> getRemovedFiles() {
+        return this.removedFiles;
+    }
+
+    /**
      * Get all modified files
      * Modified: files whose names present in currentCommit but the blob ids are different
      * @return
      */
-    private void getModified() {
+    private void setModified() {
         List<File> files = MyUtils.scandir();
         HashMap<String, String> hashMap = MyUtils.generateHashMap(files);
         this.modifiedFiles = new HashMap<String, String>();
@@ -123,14 +146,14 @@ public class Stage implements Serializable {
      *            OR files that are in currentCommit but in removedFiles
      * @return
      */
-    private void getUntracked() {
+    private void setUntracked() {
         List<File> files = MyUtils.scandir();
         HashMap<String, String> hashMap = MyUtils.generateHashMap(files);
         this.untrackedFiles = MyUtils.compareMap(hashMap, currentCommit, stagedFiles);
         //TODO: files that are in currentCommit but also in removedFiles
     }
 
-    private void getRemoved() {
+    private void setRemoved() {
         //TODO: how to deal with this?
         this.removedFiles = new HashMap<String, String>();
     }

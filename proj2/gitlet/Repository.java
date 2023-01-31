@@ -43,6 +43,7 @@ public class Repository {
     public static final File GITLET_REFS = join(GITLET_DIR, "refs");
     public static final File GITLET_HEADS = join(GITLET_DIR, "HEAD");
     public static final File GITLET_STAGE = join(GITLET_DIR, "stage");
+    public static final File STAGE_BLOBS = join(GITLET_STAGE, "blobs");
 
     public static void init() {
         //TODO: init
@@ -63,7 +64,7 @@ public class Repository {
             GITLET_REFS.mkdir();
             GITLET_HEADS.mkdir();
             GITLET_STAGE.mkdir();
-            System.out.println("Initialized empty Git repository in" + GITLET_DIR);
+            STAGE_BLOBS.mkdir();
         }
     }
 
