@@ -62,4 +62,16 @@ public class MyUtils {
         }
         return files;
     }
+
+    public static void cleanDirectory(File f) {
+        File[] files = f.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    cleanDirectory(file);
+                    file.delete();
+                } else {file.delete();}
+            }
+        }
+    }
 }

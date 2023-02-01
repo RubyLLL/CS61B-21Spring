@@ -17,7 +17,9 @@ import static gitlet.Utils.join;
 /* Structure inside our .gitlet directory
  *   .gitlet
  *      |--objects
- *      |     |--commit and blob
+ *      |     |--commitID
+ *      |         |--commit object
+ *                |-- blob objects
  *      |--refs
  *      |     |--master
  *      |--HEAD
@@ -123,6 +125,11 @@ public class Repository {
         }
     }
 
+    /**
+     *
+     * @param message
+     * @param branch
+     */
     public static void commit(String message, String branch) {
         Commit.commit(message, branch);
     }

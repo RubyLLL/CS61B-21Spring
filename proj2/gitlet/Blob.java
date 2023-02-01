@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class Blob implements Serializable {
@@ -21,6 +22,10 @@ public class Blob implements Serializable {
         this.id = "";
     }
 
+
+    // ----------------------------------------------------------------
+    // Blob Operations (get/save/remove/copy)
+    // ----------------------------------------------------------------
     /**
      * get the blob from the specified directory
      * @param id
@@ -37,6 +42,9 @@ public class Blob implements Serializable {
      * @param b
      */
     public static void save(Blob b, File to) {
+        if (!to.exists()) {
+            to.mkdirs();
+        }
         File f = new File(to, b.id);
         Utils.writeObject(f, b);
     }
@@ -47,6 +55,35 @@ public class Blob implements Serializable {
     public static void remove(Blob b, File from) {
         File f = new File(from, b.id);
         f.delete();
+    }
+
+    /**
+     * Copy blobs from folder to folder
+     * @param from the source directory
+     * @param to the destination directory
+     */
+    public static void copy(File from, File to) {
+        if (!to.exists()) {
+            to.mkdir();
+        }
+        File[] files = from.listFiles(File::isFile);
+        if (files != null) {
+            for (File f: files) {
+                Blob.save(Blob.get(f.getName(), from), to);
+            }
+        }
+    }
+
+    /**
+     * Copy blobs in HashMap from folder to folder
+     * @param hashMap blobs to be copied
+     * @param from the source directory
+     * @param to the destination directory
+     */
+    public static void copy(HashMap<String, String> hashMap, File from, File to) {
+        for (String blobId : hashMap.keySet()) {
+            Blob.save(Blob.get(blobId, from), to);
+        }
     }
 
     /**
@@ -63,6 +100,11 @@ public class Blob implements Serializable {
         b.id = b.generateBlobId();
         return b;
     }
+
+
+    // ----------------------------------------------------------------
+    //             Blob Generator & Setters and Getters
+    // ----------------------------------------------------------------
 
     public static List<Blob> generateBlobs(List<File> files) {
         List<Blob> blobs = new ArrayList<>();
@@ -90,6 +132,10 @@ public class Blob implements Serializable {
         }
     }
 
+    public String generateBlobId() {
+        return Utils.sha1("B" + this.filename + Arrays.toString(this.bytes));
+    }
+
     public String getId() {
         return this.id;
     }
@@ -104,10 +150,6 @@ public class Blob implements Serializable {
 
     public byte[] getBytes() {
         return this.bytes;
-    }
-
-    public String generateBlobId() {
-        return Utils.sha1("B" + this.filename + Arrays.toString(this.bytes));
     }
 }
 

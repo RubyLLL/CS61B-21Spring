@@ -31,7 +31,7 @@ public class Main {
                 break;
             case "commit":
                 if (args.length != 2) {
-                    throw new GitletException("Usage: java gitlet.Main remove [file name].");
+                    throw new GitletException("Please enter a commit message.");
                 }
                 String message = args[1];
                 Repository.commit(message, "master");

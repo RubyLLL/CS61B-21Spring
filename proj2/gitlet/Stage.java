@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import static gitlet.Repository.GITLET_STAGE;
 import static gitlet.Repository.STAGE_BLOBS;
@@ -27,6 +28,9 @@ public class Stage implements Serializable {
     private HashMap<String, String> modifiedFiles;
     private HashMap<String, String> currentCommit;
 
+    //----------------------------------------------------------------
+    //          Stage Operations (get/add/save/remove)
+    //----------------------------------------------------------------
     /**
      * Returns the existing stage or creates a new one.
      * @return Stage
@@ -39,12 +43,10 @@ public class Stage implements Serializable {
         }
         else {
             s = new Stage();
-            // stagedFiles ? - add() should take care of this
-            // removedFiles ? - getRemoved()
-            // modifiedFiles ? - getModified()
-            // untrackedFiles ? - getUntracked()
-            Commit c = Commit.retrieveFromHEAD();
-            s.currentCommit = c.getCommittedFiles();
+            Commit c = Commit.get();
+            s.currentCommit = c != null ?
+                    c.getCommittedFiles() :
+                    new HashMap<String, String>();
             s.stagedFiles = new HashMap<>();
             s.setUntracked();
             s.setModified();
@@ -65,7 +67,7 @@ public class Stage implements Serializable {
         }
         Stage s = get();
         Blob b = Blob.generateBlob(f);
-        if (!s.alreadyCommitted(b) && !s.alreadyTracked(b)) {
+        if (!s.alreadyCommitted(b) && !s.alreadyStaged(b)) {
             Blob.save(b, STAGE_BLOBS);
             s.stagedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
             s.stagedFiles.put(b.getId(), f.getName());
@@ -81,13 +83,16 @@ public class Stage implements Serializable {
         save(s);
     }
 
+    /**
+     * Remove File f from the current stage
+     * @param f
+     */
     public static void remove(File f) {
-        //TODO: remove blobs as well
         Stage s = get();
         Blob b = Blob.generateBlob(f);
-        //Unstage the file if it is currently staged for addition.
-        if (s.alreadyTracked(b)) {
+        if (s.alreadyStaged(b)) {
             s.stagedFiles.remove(b.getId());
+            Blob.remove(b, STAGE_BLOBS);
         } else if (s.alreadyCommitted(b)) {
             s.removedFiles.put(b.getId(), f.getName());
             f.delete();
@@ -109,10 +114,42 @@ public class Stage implements Serializable {
      * remove the stage, usually happens after a commit
      */
     public static void removeStage() {
+        for (File f: Objects.requireNonNull(STAGE_BLOBS.listFiles())) {
+            f.delete();
+        }
         File f = new File(GITLET_STAGE, "current");
         f.delete();
     }
 
+
+    // ----------------------------------------------------------------
+    //                       Stage Status
+    // ----------------------------------------------------------------
+    /**
+     * check if the Blob is in the current commit
+     * @param b
+     * @return
+     */
+    private boolean alreadyCommitted(Blob b) {
+        return currentCommit.containsKey(b.getId());
+    }
+
+    private boolean alreadyStaged(Blob b) {
+        return stagedFiles.containsKey(b.getId());
+    }
+
+    /**
+     * Return true if no changes since the last commit
+     * @return
+     */
+    public boolean noChange() {
+        return stagedFiles.isEmpty() && modifiedFiles.isEmpty() && removedFiles.isEmpty();
+    }
+
+
+    //----------------------------------------------------------------
+    //                     Setters and Getters
+    //----------------------------------------------------------------
     /**
      * Returns the staged files for the current stage
      * @return stagedFiles
@@ -158,6 +195,7 @@ public class Stage implements Serializable {
         this.removedFiles = new HashMap<String, String>();
     }
 
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Untracked Files: ");
@@ -176,18 +214,6 @@ public class Stage implements Serializable {
         sb.append(System.getProperty("line.separator"));
         sb.append(removedFiles.toString());
         return sb.toString();
-    }
-    /**
-     * check if the Blob is in the current commit
-     * @param b
-     * @return
-     */
-    private boolean alreadyCommitted(Blob b) {
-        return currentCommit.containsKey(b.getId());
-    }
-
-    private boolean alreadyTracked(Blob b) {
-        return stagedFiles.containsKey(b.getId());
     }
 
 
