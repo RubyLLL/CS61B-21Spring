@@ -52,8 +52,10 @@ public class Main {
                 break;
             case "checkout":
                 String commands = args[1];
-                if (commands.startsWith("--")) {
-                    Repository.checkout(commands.substring(2));
+                if (args.length == 3) {
+                    Repository.checkout(args[2], "HEAD");
+                } else if (args.length == 4) {
+                    Repository.checkout(args[3], args[1]);
                 }
                 break;
             default:

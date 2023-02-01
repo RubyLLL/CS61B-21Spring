@@ -107,8 +107,16 @@ public class Commit implements Serializable {
      * The new version of the file is not staged.
      * @param f
      */
-    public static void checkout(File f) {
-        Commit commit = get();
+    public static void checkout(File f, String commitId) {
+        Commit commit;
+        File source;
+        if (commitId.equals("HEAD")) {
+            commit = get();
+            source = GITLET_HEADS;
+        } else {
+            commit = get(commitId);
+            source = GITLET_OBJ;
+        }
         HashMap<String,String> commits = commit.getCommittedFiles();
         if (commits != null) {
             String blobId = commits.get(f.getName());
@@ -116,7 +124,7 @@ public class Commit implements Serializable {
                 System.out.println("File does not exist in that commit.");
                 return;
             }
-            Blob blob = Blob.get(blobId, Utils.join(GITLET_HEADS, commit.id, "blobs"));
+            Blob blob = Blob.get(blobId, Utils.join(source, commit.id, "blobs"));
             blob.toFile(f.getAbsoluteFile());
         }
     }
@@ -161,6 +169,10 @@ public class Commit implements Serializable {
      * Get the commit from .gitlet/HEAD
      * @return
      */
+    /**
+     * Get the commit from .gitlet/HEAD
+     * @return
+     */
     public static Commit get() {
         File[] files = GITLET_HEADS.listFiles(File::isDirectory);
         if (files != null && files.length > 0) {
@@ -170,6 +182,22 @@ public class Commit implements Serializable {
                 return Utils.readObject(f[0], Commit.class);
             }
         }
+        return null;
+    }
+
+    public static Commit get(String commitID) {
+        File[] files = GITLET_OBJ.listFiles(File::isDirectory);
+        if (files != null && files.length > 0) {
+            for (File file : files) {
+                if (file.getName().endsWith(commitID)) {
+                    File[] f = file.listFiles(File::isFile);
+                    if (f != null && f.length > 0) {
+                        return Utils.readObject(f[0], Commit.class);
+                    }
+                }
+            }
+        }
+        System.out.println("No commit with that id exists.");
         return null;
     }
 

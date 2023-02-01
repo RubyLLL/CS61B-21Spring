@@ -16,7 +16,7 @@ public class Test {
 //        System.setOut(o);
 //        Stage s = Stage.get();
 //        System.out.println(s);
-        Commit c = Commit.get();
+        Commit c = Commit.get("d3f70e5c549a68ef257fbe58604fdaa30a06ff39");
         System.out.println(c);
 
     }

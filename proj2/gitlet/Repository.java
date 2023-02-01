@@ -84,9 +84,9 @@ public class Repository {
         Stage.remove(file);
     }
 
-    public static void checkout(String fileName) {
+    public static void checkout(String fileName, String commitID) {
         File file = new File(CWD, fileName);
-        Commit.checkout(file);
+        Commit.checkout(file, commitID);
     }
 
     private static boolean isBranch(String branch) {
