@@ -56,7 +56,12 @@ public class Main {
                     Repository.checkout(args[2], "HEAD");
                 } else if (args.length == 4) {
                     Repository.checkout(args[3], args[1]);
+                } else if (args.length == 2) {
+                    break;
                 }
+                break;
+            case "log":
+                Repository.log();
                 break;
             default:
                 throw new GitletException("No command with that name exists.");

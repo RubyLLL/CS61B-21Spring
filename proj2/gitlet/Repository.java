@@ -139,4 +139,8 @@ public class Repository {
     public static void commit(String message, String branch) {
         Commit.commit(message, branch);
     }
+
+    public static void log() {
+        Commit.log();
+    }
 }

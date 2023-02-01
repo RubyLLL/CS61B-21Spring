@@ -115,6 +115,10 @@ public class Commit implements Serializable {
             source = GITLET_HEADS;
         } else {
             commit = get(commitId);
+            if (commit == null) {
+                System.out.println("No commit with that id exists.");
+                return;
+            }
             source = GITLET_OBJ;
         }
         HashMap<String,String> commits = commit.getCommittedFiles();
@@ -197,8 +201,17 @@ public class Commit implements Serializable {
                 }
             }
         }
-        System.out.println("No commit with that id exists.");
         return null;
+    }
+
+    public static void log() {
+        Commit commit = get();
+        commit.printCommit();
+        LinkedList<String> parentIds = commit.getParentIDs();
+        for (String parentId : parentIds) {
+            Commit parent = get(parentId);
+            parent.printCommit();
+        }
     }
 
     /**
@@ -265,5 +278,13 @@ public class Commit implements Serializable {
         sb.append("Parent IDs: ").append(parentIds);
         sb.append("\n");
         return sb.toString();
+    }
+
+    public void printCommit() {
+        System.out.println("===");
+        System.out.println("commit " + id);
+        System.out.println("Date: " + timestamp);
+        System.out.println(message);
+        System.out.println();
     }
 }
