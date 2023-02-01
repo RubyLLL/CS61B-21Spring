@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static gitlet.Repository.GITLET_STAGE;
@@ -28,6 +29,14 @@ public class Stage implements Serializable {
     private HashMap<String, String> modifiedFiles;
     private HashMap<String, String> currentCommit;
 
+    public Stage() {
+        untrackedFiles = new HashMap<String, String>();
+        stagedFiles = new HashMap<String, String>();
+        removedFiles = new HashMap<String, String>();
+        modifiedFiles = new HashMap<String, String>();
+        currentCommit = new HashMap<String, String>();
+    }
+
     //----------------------------------------------------------------
     //          Stage Operations (get/add/save/remove)
     //----------------------------------------------------------------
@@ -43,15 +52,8 @@ public class Stage implements Serializable {
         }
         else {
             s = new Stage();
-            Commit c = Commit.get();
-            s.currentCommit = c != null ?
-                    c.getCommittedFiles() :
-                    new HashMap<String, String>();
-            s.stagedFiles = new HashMap<>();
-            s.setUntracked();
-            s.setModified();
-            s.setRemoved();
         }
+        s.update();
         return s;
     }
 
@@ -121,10 +123,20 @@ public class Stage implements Serializable {
         f.delete();
     }
 
+    public void update() {
+        Commit c = Commit.get();
+        currentCommit = c != null ?
+                c.getCommittedFiles() :
+                new HashMap<String, String>();
+        setUntracked();
+        setModified();
+    }
+
 
     // ----------------------------------------------------------------
     //                       Stage Status
     // ----------------------------------------------------------------
+
     /**
      * check if the Blob is in the current commit
      * @param b
@@ -168,15 +180,48 @@ public class Stage implements Serializable {
 
     /**
      * Get all modified files
-     * Modified: files whose names present in currentCommit but the blob ids are different
+     * Modified: files whose names present in currentCommit
+     * but the blob ids are different and not in stagedFiles
      * @return
      */
     private void setModified() {
+        //TODO:
+        // Tracked in the current commit, changed in the working directory, but not staged; or
+        // Staged for addition, but with different contents than in the working directory; or
+        // Staged for addition, but deleted in the working directory; or
+        // Not staged for removal, but tracked in the current commit and deleted from the working directory.
         List<File> files = MyUtils.scandir();
         HashMap<String, String> hashMap = MyUtils.generateHashMap(files);
-        this.modifiedFiles = new HashMap<String, String>();
+        for (Map.Entry<String, String> entry: hashMap.entrySet()) {
+            if (committedButChanged(entry) ||
+                    stagedButChanged(entry)) {
+                modifiedFiles.put(entry.getKey(), entry.getValue());
+            }
+        }
+        HashMap<String, String> diffFromStaged = MyUtils.compareMap(hashMap, stagedFiles);
+        for (Map.Entry<String, String> entry : diffFromStaged.entrySet()) {
+            if (!removedFiles.containsKey(entry.getKey())) {
+                modifiedFiles.put(entry.getKey(), entry.getValue());
+            }
+        }
+        HashMap<String, String> diffFromCommit = MyUtils.compareMap(currentCommit, hashMap);
+        for (Map.Entry<String, String> entry : diffFromCommit.entrySet()) {
+            if (!removedFiles.containsKey(entry.getKey())) {
+                modifiedFiles.put(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
+    private boolean committedButChanged(Map.Entry<String, String> entry) {
+        return currentCommit.containsValue(entry.getValue()) &&
+                !currentCommit.containsKey(entry.getKey()) &&
+                !stagedFiles.containsKey(entry.getKey());
+    }
+
+    private boolean stagedButChanged(Map.Entry<String, String> entry) {
+        return stagedFiles.containsValue(entry.getValue()) &&
+                !stagedFiles.containsKey(entry.getKey());
+    }
     /**
      * Get all untracked files
      * Untracked: files that are NOT present in currentCommit or StagedFiles but in the directory
@@ -186,13 +231,15 @@ public class Stage implements Serializable {
     private void setUntracked() {
         List<File> files = MyUtils.scandir();
         HashMap<String, String> hashMap = MyUtils.generateHashMap(files);
-        this.untrackedFiles = MyUtils.compareMap(hashMap, currentCommit, stagedFiles);
-        //TODO: files that are in currentCommit but also in removedFiles
+        HashMap<String, String> remainedFromCommit = MyUtils.compareMap(currentCommit,removedFiles);
+        untrackedFiles = MyUtils.compareMap(hashMap, remainedFromCommit, stagedFiles);
     }
 
     private void setRemoved() {
         //TODO: how to deal with this?
-        this.removedFiles = new HashMap<String, String>();
+        removedFiles = removedFiles != null ?
+                removedFiles :
+                new HashMap<String, String>();
     }
 
 

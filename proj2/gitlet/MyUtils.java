@@ -47,7 +47,7 @@ public class MyUtils {
     }
 
     /**
-     *
+     * Scans the working directory and returns *.txt
      * @return
      */
     public static List<File> scandir() {
