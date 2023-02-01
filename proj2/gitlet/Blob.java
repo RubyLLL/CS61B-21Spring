@@ -81,7 +81,7 @@ public class Blob implements Serializable {
      * @param to the destination directory
      */
     public static void copy(HashMap<String, String> hashMap, File from, File to) {
-        for (String blobId : hashMap.keySet()) {
+        for (String blobId : hashMap.values()) {
             Blob.save(Blob.get(blobId, from), to);
         }
     }
@@ -119,12 +119,10 @@ public class Blob implements Serializable {
      * @return
      */
     public void toFile(File filepath) {
-        String filename = this.filename;
         String content = new String(bytes);
-        File dest = Utils.join(filepath, filename);
         try {
-            dest.createNewFile();
-            FileWriter myWriter = new FileWriter(dest);
+            filepath.createNewFile();
+            FileWriter myWriter = new FileWriter(filename);
             myWriter.write(content);
             myWriter.close();
         } catch (IOException e) {

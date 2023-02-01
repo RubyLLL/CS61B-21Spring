@@ -50,6 +50,12 @@ public class Main {
                 branch = args[1];
                 Repository.removeBranch(branch);
                 break;
+            case "checkout":
+                String commands = args[1];
+                if (commands.startsWith("--")) {
+                    Repository.checkout(commands.substring(2));
+                }
+                break;
             default:
                 throw new GitletException("No command with that name exists.");
             // TODO: FILL THE REST IN

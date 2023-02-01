@@ -101,6 +101,26 @@ public class Commit implements Serializable {
         Stage.removeStage();
     }
 
+    /**
+     * Takes the version of the file as it exists in the head commit and puts it in the working directory,
+     * overwriting the version of the file that’s already there if there is one.
+     * The new version of the file is not staged.
+     * @param f
+     */
+    public static void checkout(File f) {
+        Commit commit = get();
+        HashMap<String,String> commits = commit.getCommittedFiles();
+        if (commits != null) {
+            String blobId = commits.get(f.getName());
+            if (blobId == null) {
+                System.out.println("File does not exist in that commit.");
+                return;
+            }
+            Blob blob = Blob.get(blobId, Utils.join(GITLET_HEADS, commit.id, "blobs"));
+            blob.toFile(f.getAbsoluteFile());
+        }
+    }
+
     private static String dateToTimeStamp(Date date) {
         DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
         return dateFormat.format(date);
@@ -148,7 +168,7 @@ public class Commit implements Serializable {
             File[] f = file.listFiles(File::isFile);
             if (f != null && f.length > 0) {
                 return Utils.readObject(f[0], Commit.class);
-            }   
+            }
         }
         return null;
     }

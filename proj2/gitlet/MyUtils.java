@@ -23,7 +23,9 @@ public class MyUtils {
             HashMap<String, String> result = new HashMap<String, String>();
             for (int i = 1; i < hashMaps.length; i++) {
                 HashMap<String,String> b = hashMaps[i];
-                a.values().removeAll(b.values());
+                for (String key : b.keySet()) {
+                    a.remove(key);
+                }
             }
             return a;
         }
@@ -41,7 +43,7 @@ public class MyUtils {
         List<Blob> blobs = Blob.generateBlobs(files);
         HashMap<String, String> hashMap = new HashMap<>();
         for (Blob blob : blobs) {
-            hashMap.put(blob.generateBlobId(), blob.getFilename());
+            hashMap.put(blob.getFilename(), blob.generateBlobId());
         }
         return hashMap;
     }

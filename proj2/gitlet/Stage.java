@@ -71,15 +71,14 @@ public class Stage implements Serializable {
         Blob b = Blob.generateBlob(f);
         if (!s.alreadyCommitted(b) && !s.alreadyStaged(b)) {
             Blob.save(b, STAGE_BLOBS);
-            s.stagedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
-            s.stagedFiles.put(b.getId(), f.getName());
-            s.removedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
-            s.untrackedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
-            s.modifiedFiles.entrySet().removeIf(entry -> entry.getValue().equals(f.getName()));
+            s.stagedFiles.put(f.getName(), b.getId());
+            s.removedFiles.remove(f.getName());
+            s.untrackedFiles.remove(f.getName());
+            s.modifiedFiles.remove(f.getName());
         } else if (s.alreadyCommitted(b)) {
             // if identical to the version in the current commit
             // remove it from the staging area
-            s.stagedFiles.remove(b.getId());
+            s.stagedFiles.remove(f.getName());
             Blob.remove(b, STAGE_BLOBS);
         }
         save(s);
@@ -140,15 +139,21 @@ public class Stage implements Serializable {
     /**
      * check if the Blob is in the current commit
      * @param b
-     * @return
+     * @return true if the Blob is already committed
      */
     private boolean alreadyCommitted(Blob b) {
-        return currentCommit.containsKey(b.getId());
+        return currentCommit.containsValue(b.getId());
     }
 
+    /**
+     * check if the Blob has already staged
+     * @param b
+     * @return true if the Blob has already staged
+     */
     private boolean alreadyStaged(Blob b) {
-        return stagedFiles.containsKey(b.getId());
+        return stagedFiles.containsValue(b.getId());
     }
+
 
     /**
      * Return true if no changes since the last commit
@@ -213,14 +218,14 @@ public class Stage implements Serializable {
     }
 
     private boolean committedButChanged(Map.Entry<String, String> entry) {
-        return currentCommit.containsValue(entry.getValue()) &&
-                !currentCommit.containsKey(entry.getKey()) &&
-                !stagedFiles.containsKey(entry.getKey());
+        return currentCommit.containsKey(entry.getKey()) &&
+                !currentCommit.containsValue(entry.getValue()) &&
+                !stagedFiles.containsValue(entry.getValue());
     }
 
     private boolean stagedButChanged(Map.Entry<String, String> entry) {
-        return stagedFiles.containsValue(entry.getValue()) &&
-                !stagedFiles.containsKey(entry.getKey());
+        return stagedFiles.containsKey(entry.getKey()) &&
+                !stagedFiles.containsValue(entry.getValue());
     }
     /**
      * Get all untracked files

@@ -74,6 +74,7 @@ public class Repository {
         File file = new File(CWD, fileName);
         if (!GITLET_DIR.exists()) {
             System.out.println("Not in an initialized Gitlet directory.");
+            return;
         }
         Stage.add(file);
     }
@@ -81,6 +82,11 @@ public class Repository {
     public static void remove(String fileName) {
         File file = new File(CWD, fileName);
         Stage.remove(file);
+    }
+
+    public static void checkout(String fileName) {
+        File file = new File(CWD, fileName);
+        Commit.checkout(file);
     }
 
     private static boolean isBranch(String branch) {
