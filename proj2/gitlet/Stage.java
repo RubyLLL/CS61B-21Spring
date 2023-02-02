@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static gitlet.Repository.GITLET_STAGE;
-import static gitlet.Repository.STAGE_BLOBS;
+import static gitlet.Repository.*;
 
 /* Structure inside our .gitlet directory
  *   .gitlet
@@ -62,7 +61,6 @@ public class Stage implements Serializable {
      * @param f
      */
     public static void add(File f) {
-        //TODO: we are not saving the blobs
         if (!f.exists()) {
             System.out.println("File does not exist.");
             return;
@@ -72,15 +70,13 @@ public class Stage implements Serializable {
         if (!s.alreadyCommitted(b) && !s.alreadyStaged(b)) {
             Blob.save(b, STAGE_BLOBS);
             s.stagedFiles.put(f.getName(), b.getId());
-            s.removedFiles.remove(f.getName());
-            s.untrackedFiles.remove(f.getName());
-            s.modifiedFiles.remove(f.getName());
         } else if (s.alreadyCommitted(b)) {
-            // if identical to the version in the current commit
-            // remove it from the staging area
-            s.stagedFiles.remove(f.getName());
             Blob.remove(b, STAGE_BLOBS);
+            s.stagedFiles.remove(f.getName());
         }
+        s.removedFiles.remove(f.getName());
+        s.untrackedFiles.remove(f.getName());
+        s.modifiedFiles.remove(f.getName());
         save(s);
     }
 
@@ -89,13 +85,19 @@ public class Stage implements Serializable {
      * @param f
      */
     public static void remove(File f) {
+        if (!f.exists()) {
+            return;
+        }
         Stage s = get();
         Blob b = Blob.generateBlob(f);
         if (s.alreadyStaged(b)) {
-            s.stagedFiles.remove(b.getId());
+            // Unstage the file if it is currently staged for addition.
+            s.stagedFiles.remove(f.getName());
             Blob.remove(b, STAGE_BLOBS);
         } else if (s.alreadyCommitted(b)) {
-            s.removedFiles.put(b.getId(), f.getName());
+            // If the file is tracked in the current commit, stage it for removal
+            // and remove the file from the working directory
+            s.removedFiles.put(f.getName(), b.getId());
             f.delete();
         } else {
             System.out.println("No reason to remove the file.");
@@ -120,6 +122,48 @@ public class Stage implements Serializable {
         }
         File f = new File(GITLET_STAGE, "current");
         f.delete();
+    }
+
+    public static void status() {
+        Stage s = get();
+        Commit c = Commit.get();
+        File[] branches = GITLET_REFS.listFiles(File::isDirectory);
+        System.out.println("=== Branches ===");
+        System.out.println("*" + c.getBranch());
+        for (File branch : branches) {
+            if (!branch.getName().equals(c.getBranch())) {
+                System.out.println(branch.getName());
+            }
+        }
+        System.out.println("");
+
+        System.out.println("=== Staged Files ===");
+        for (String filename: s.getStagedFiles().keySet()) {
+            System.out.println(filename);
+        }
+        System.out.println("");
+
+        System.out.println("=== Removed Files ===");
+        for (String filename: s.getRemovedFiles().keySet()) {
+            System.out.println(filename);
+        }
+        System.out.println("");
+
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        for (String filename: s.getModifiedFiles().keySet()) {
+            if (filename.startsWith("D")) {
+                System.out.println(filename.substring(1) + " (deleted)");
+            } else if (filename.startsWith("M")) {
+                System.out.println(filename.substring(1) + " (modified)");
+            }
+        }
+        System.out.println("");
+
+        System.out.println("=== Untracked Files ===");
+        for (String filename: s.getUntrackedFiles().keySet()) {
+            System.out.println(filename);
+        }
+        System.out.println("");
     }
 
     public void update() {
@@ -183,6 +227,14 @@ public class Stage implements Serializable {
         return this.removedFiles;
     }
 
+    public HashMap<String, String> getModifiedFiles() {
+        return this.modifiedFiles;
+    }
+
+    public HashMap<String, String> getUntrackedFiles() {
+        return this.untrackedFiles;
+    }
+
     /**
      * Get all modified files
      * Modified: files whose names present in currentCommit
@@ -190,54 +242,53 @@ public class Stage implements Serializable {
      * @return
      */
     private void setModified() {
-        //TODO:
+
         // Tracked in the current commit, changed in the working directory, but not staged; or
         // Staged for addition, but with different contents than in the working directory; or
-        // Staged for addition, but deleted in the working directory; or
-        // Not staged for removal, but tracked in the current commit and deleted from the working directory.
         List<File> files = MyUtils.scandir();
         HashMap<String, String> hashMap = MyUtils.generateHashMap(files);
         for (Map.Entry<String, String> entry: hashMap.entrySet()) {
-            if (committedButChanged(entry) ||
-                    stagedButChanged(entry)) {
-                modifiedFiles.put(entry.getKey(), entry.getValue());
+            if (committedButChanged(entry) || stagedButChanged(entry)) {
+                modifiedFiles.put("M" + entry.getKey(), entry.getValue());
             }
         }
-        HashMap<String, String> diffFromStaged = MyUtils.compareMap(hashMap, stagedFiles);
-        for (Map.Entry<String, String> entry : diffFromStaged.entrySet()) {
-            if (!removedFiles.containsKey(entry.getKey())) {
-                modifiedFiles.put(entry.getKey(), entry.getValue());
-            }
+
+        // Staged for addition, but deleted in the working directory
+        // TODO: test22-remove-deleted-file
+        HashMap<String, String> stagedButDeleted = MyUtils.compareMap(stagedFiles, hashMap);
+        for (Map.Entry<String, String> entry: stagedButDeleted.entrySet()) {
+            modifiedFiles.put("D" + entry.getKey(), entry.getValue());
         }
+
+        // Not staged for removal, but tracked in the current commit and deleted from the working directory.
         HashMap<String, String> diffFromCommit = MyUtils.compareMap(currentCommit, hashMap);
         for (Map.Entry<String, String> entry : diffFromCommit.entrySet()) {
             if (!removedFiles.containsKey(entry.getKey())) {
-                modifiedFiles.put(entry.getKey(), entry.getValue());
+                modifiedFiles.put("D" + entry.getKey(), entry.getValue());
             }
         }
     }
 
-    private boolean committedButChanged(Map.Entry<String, String> entry) {
-        return currentCommit.containsKey(entry.getKey()) &&
-                !currentCommit.containsValue(entry.getValue()) &&
-                !stagedFiles.containsValue(entry.getValue());
-    }
-
-    private boolean stagedButChanged(Map.Entry<String, String> entry) {
-        return stagedFiles.containsKey(entry.getKey()) &&
-                !stagedFiles.containsValue(entry.getValue());
-    }
     /**
      * Get all untracked files
      * Untracked: files that are NOT present in currentCommit or StagedFiles but in the directory
-     *            OR files that are in currentCommit but in removedFiles
      * @return
      */
     private void setUntracked() {
         List<File> files = MyUtils.scandir();
         HashMap<String, String> hashMap = MyUtils.generateHashMap(files);
-        HashMap<String, String> remainedFromCommit = MyUtils.compareMap(currentCommit,removedFiles);
-        untrackedFiles = MyUtils.compareMap(hashMap, remainedFromCommit, stagedFiles);
+        untrackedFiles = MyUtils.compareMap(hashMap, currentCommit, stagedFiles);
+    }
+
+
+    private boolean committedButChanged(Map.Entry<String, String> entry) {
+        return currentCommit.containsKey(entry.getKey()) &&
+                !currentCommit.containsValue(entry.getValue());
+    }
+
+    private boolean stagedButChanged(Map.Entry<String, String> entry) {
+        return stagedFiles.containsKey(entry.getKey()) &&
+                !stagedFiles.containsValue(entry.getValue());
     }
 
     private void setRemoved() {
@@ -267,7 +318,4 @@ public class Stage implements Serializable {
         sb.append(removedFiles.toString());
         return sb.toString();
     }
-
-
-
 }

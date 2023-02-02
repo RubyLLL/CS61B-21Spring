@@ -19,7 +19,7 @@ public class MyUtils {
             return hashMaps[0];
         }
         else {
-            HashMap<String, String> a = hashMaps[0];
+            HashMap<String, String> a = new HashMap<>(hashMaps[0]);
             HashMap<String, String> result = new HashMap<String, String>();
             for (int i = 1; i < hashMaps.length; i++) {
                 HashMap<String,String> b = hashMaps[i];

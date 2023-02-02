@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.util.Objects;
 
 import static gitlet.Utils.join;
 
@@ -30,14 +29,6 @@ import static gitlet.Utils.join;
 //
 // --------------------------------
 public class Repository {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Repository class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided two examples for you.
-     */
-
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
@@ -72,10 +63,6 @@ public class Repository {
 
     public static void add(String fileName) {
         File file = new File(CWD, fileName);
-        if (!GITLET_DIR.exists()) {
-            System.out.println("Not in an initialized Gitlet directory.");
-            return;
-        }
         Stage.add(file);
     }
 
@@ -84,21 +71,15 @@ public class Repository {
         Stage.remove(file);
     }
 
+    /**
+     * check out a file from HEAD or given a commitID,
+     * or check out files in a given branch
+     * @param fileName
+     * @param commitID
+     */
     public static void checkout(String fileName, String commitID) {
         File file = new File(CWD, fileName);
         Commit.checkout(file, commitID);
-    }
-
-    private static boolean isBranch(String branch) {
-        File[] files = GITLET_REFS.listFiles(File::isDirectory);
-        if (files != null) {
-            for (File file : files) {
-                if (file.getName().equals(branch)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -116,6 +97,43 @@ public class Repository {
         Commit.moveHead(c);
     }
 
+    /**
+     * commit to the given branch with the given message
+     * @param message
+     * @param branch
+     */
+    public static void commit(String message, String branch) {
+        if (message.length() == 0) {
+            System.out.println("Please enter a commit message.");
+            return;
+        }
+        Commit.commit(message, branch);
+    }
+
+    /**
+     * Starting at the current head commit, display information about
+     * each commit backwards along the commit tree until the initial commit
+     */
+    public static void log() {
+        Commit.log();
+    }
+
+    public static void globalLog() {
+        Commit.globalLog();
+    }
+
+    private static boolean isBranch(String branch) {
+        File[] files = GITLET_REFS.listFiles(File::isDirectory);
+        if (files != null) {
+            for (File file : files) {
+                if (file.getName().equals(branch)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static void removeBranch(String branch) {
         Commit c = Commit.get();
         File b = new File(GITLET_REFS, branch);
@@ -124,23 +142,16 @@ public class Repository {
         } else if (!b.exists()) {
             System.out.println("A branch with that name does not exist.");
         } else {
-            for (File f: Objects.requireNonNull(b.listFiles())) {
-                f.delete();
-            }
+            MyUtils.cleanDirectory(b);
             b.delete();
         }
     }
 
-    /**
-     *
-     * @param message
-     * @param branch
-     */
-    public static void commit(String message, String branch) {
-        Commit.commit(message, branch);
+    public static void find(String message) {
+        Commit.find(message);
     }
 
-    public static void log() {
-        Commit.log();
+    public static void status() {
+        Stage.status();
     }
 }

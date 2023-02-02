@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Locale;
+import java.util.*;
 
 import static gitlet.Repository.*;
 
@@ -20,7 +17,9 @@ import static gitlet.Repository.*;
 /* Structure inside our .gitlet directory
  *   .gitlet
  *      |--objects
- *      |     |--commit and blob
+ *      |     |--commitID
+ *      |         |--commit object
+ *                |-- blob objects
  *      |--refs
  *      |     |--master
  *      |--HEAD
@@ -84,7 +83,7 @@ public class Commit implements Serializable {
             System.out.println("No changes added to the commit.");
             return;
         }
-        //TODO: change branch
+
         HashMap<String, String> filesRemained = MyUtils.compareMap(c.committedFiles, s.getRemovedFiles());
         HashMap<String, String> committedFiles = new HashMap<String, String>();
         committedFiles.putAll(filesRemained);
@@ -102,8 +101,9 @@ public class Commit implements Serializable {
     }
 
     /**
-     * Takes the version of the file as it exists in the head commit and puts it in the working directory,
-     * overwriting the version of the file that’s already there if there is one.
+     * Takes the version of the file as it exists in the head commit
+     * and puts it in the working directory,
+     * overwriting the file that’s already there
      * The new version of the file is not staged.
      * @param f
      */
@@ -178,7 +178,8 @@ public class Commit implements Serializable {
      * @return
      */
     public static Commit get() {
-        File[] files = GITLET_HEADS.listFiles(File::isDirectory);
+        File[] files =
+                GITLET_HEADS.listFiles(File::isDirectory);
         if (files != null && files.length > 0) {
             File file = files[0];
             File[] f = file.listFiles(File::isFile);
@@ -190,7 +191,8 @@ public class Commit implements Serializable {
     }
 
     public static Commit get(String commitID) {
-        File[] files = GITLET_OBJ.listFiles(File::isDirectory);
+        File[] files =
+                GITLET_OBJ.listFiles(File::isDirectory);
         if (files != null && files.length > 0) {
             for (File file : files) {
                 if (file.getName().endsWith(commitID)) {
@@ -214,6 +216,15 @@ public class Commit implements Serializable {
         }
     }
 
+    public static void globalLog() {
+        // TODO: test24-global-log-prev
+        File[] commitFolders = GITLET_OBJ.listFiles(File::isDirectory);
+        for (File folder: commitFolders) {
+            Commit c = get(folder.getName());
+            c.printCommit();
+        }
+    }
+
     /**
      * Replace the commit object of the branch with the new commit object
      * @param commit
@@ -228,14 +239,37 @@ public class Commit implements Serializable {
                 Utils.join(target, "blobs"));
         String parentId = c.getParentIDs().peek();
         if (parentId != null) {
-            File parent = new File(Utils.join(GITLET_REFS, c.branch), parentId);
+            File parent = new File(
+                    Utils.join(GITLET_REFS, c.branch),
+                    parentId);
             MyUtils.cleanDirectory(parent);
             parent.delete();
         }
     }
 
+    public static void find(String message) {
+        File[] commitFolders = GITLET_OBJ.listFiles(File::isDirectory);
+        List<String> commits = new ArrayList<>();
+        for (File folder: commitFolders) {
+            Commit c = get(folder.getName());
+            if (c.message.equals(message)) {
+                commits.add(c.id);
+            }
+        }
+        if (commits.size() == 0) {
+            System.out.println("Found no commit with that message.");
+            return;
+        }
+        for (String commit: commits) {
+            System.out.println(commit);
+        }
+    }
+
     private String generateCommitId() {
-        return Utils.sha1("C" + this.timestamp + parentIds.toString() + committedFiles.toString());
+        return Utils.sha1("C" +
+                this.timestamp +
+                parentIds.toString() +
+                committedFiles.toString());
     }
 
     public HashMap<String, String> getCommittedFiles() {
@@ -255,12 +289,6 @@ public class Commit implements Serializable {
     }
 
     /**
-     *     private String message;
-     *     private String timestamp;
-     *     private String id; // the 40-digit sha1 code
-     *     private String branch; // the name of the branch this commit is in
-     *     private HashMap<String, String> committedFiles; // all blobs associated with this commit
-     *     private List<String> parentIds;
      * @return
      */
     public String toString() {
