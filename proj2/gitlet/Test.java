@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +23,16 @@ public class Test {
 //        }
 //        PrintStream console = System.out;
 //        System.setOut(o);
-        Stage s = Stage.get();
-        System.out.println(s);
+//        Stage s = Stage.get();
+//        System.out.println(s);
+
+        File f = new File(CWD, "test.txt");
+        System.out.println(f.getAbsoluteFile());
+        try {
+            f.createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
 //        Commit c = Commit.get();
 //        System.out.println(c);

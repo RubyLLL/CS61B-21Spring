@@ -116,10 +116,12 @@ public class Blob implements Serializable {
 
     /**
      * Recover the file from the Blob, save to the given filepath
+     * if the file exists, the content would be overwritten
      * @return
      */
     public void toFile(File filepath) {
         String content = new String(bytes);
+        filepath.delete();
         try {
             filepath.createNewFile();
             FileWriter myWriter = new FileWriter(filename);

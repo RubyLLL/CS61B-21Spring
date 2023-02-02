@@ -67,7 +67,8 @@ public class Stage implements Serializable {
         }
         Stage s = get();
         Blob b = Blob.generateBlob(f);
-        if (!s.alreadyCommitted(b) && !s.alreadyStaged(b)) {
+        if (!s.alreadyCommitted(b)
+                && !s.alreadyStaged(b)) {
             Blob.save(b, STAGE_BLOBS);
             s.stagedFiles.put(f.getName(), b.getId());
         } else if (s.alreadyCommitted(b)) {
@@ -204,7 +205,9 @@ public class Stage implements Serializable {
      * @return
      */
     public boolean noChange() {
-        return stagedFiles.isEmpty() && modifiedFiles.isEmpty() && removedFiles.isEmpty();
+        return stagedFiles.isEmpty()
+                && modifiedFiles.isEmpty()
+                && removedFiles.isEmpty();
     }
 
 
@@ -282,13 +285,13 @@ public class Stage implements Serializable {
 
 
     private boolean committedButChanged(Map.Entry<String, String> entry) {
-        return currentCommit.containsKey(entry.getKey()) &&
-                !currentCommit.containsValue(entry.getValue());
+        return currentCommit.containsKey(entry.getKey())
+                && !currentCommit.containsValue(entry.getValue());
     }
 
     private boolean stagedButChanged(Map.Entry<String, String> entry) {
-        return stagedFiles.containsKey(entry.getKey()) &&
-                !stagedFiles.containsValue(entry.getValue());
+        return stagedFiles.containsKey(entry.getKey())
+                && !stagedFiles.containsValue(entry.getValue());
     }
 
     private void setRemoved() {

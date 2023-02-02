@@ -133,6 +133,36 @@ public class Commit implements Serializable {
         }
     }
 
+    /**
+     * Checkout branch
+     * @param branch
+     */
+    public static void checkout(String branch) {
+        // Take all files from the given branch
+        File commitFolder = new File(GITLET_REFS, branch).listFiles(File::isDirectory)[0];
+        String commitId = commitFolder.getName();
+        System.out.println(commitId);
+        File[] blobFiles = new File(commitFolder, "blobs").listFiles(File::isFile);
+        Commit c = Commit.get(commitId);
+        Stage s = Stage.get();
+        HashMap<String, String> untrackedFiles = s.getUntrackedFiles();
+        List<Blob> blobs = new ArrayList<>();
+        if (blobFiles != null) { //TODO: this part does not look right to me
+            for (File blobFile : blobFiles) {
+                Blob b = Utils.readObject(blobFile, Blob.class);
+                blobs.add(b);
+                if (untrackedFiles.containsKey(b.getFilename())) {
+                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                    return;
+                }
+            }
+        }
+        HEAD(c);
+        for(Blob b : blobs) {
+            b.toFile(Utils.join(CWD, b.getFilename()));
+        }
+    }
+
     private static String dateToTimeStamp(Date date) {
         DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
         return dateFormat.format(date);
@@ -191,6 +221,7 @@ public class Commit implements Serializable {
     }
 
     public static Commit get(String commitID) {
+        // TODO: support short uid
         File[] files =
                 GITLET_OBJ.listFiles(File::isDirectory);
         if (files != null && files.length > 0) {

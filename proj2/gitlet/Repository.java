@@ -82,6 +82,24 @@ public class Repository {
         Commit.checkout(file, commitID);
     }
 
+    public static void checkout(String branch) {
+        Commit c = Commit.get();
+        if (c.getBranch().equals(branch)) {
+            System.out.println("No need to checkout the current branch.");
+            return;
+        }
+        File[] branches = GITLET_REFS.listFiles(File::isDirectory);
+        if (branches != null) {
+            for (File b : branches) {
+                if (b.getName().equals(branch)) {
+                    Commit.checkout(branch);
+                    return;
+                }
+            }
+        }
+        System.out.println("No such branch exists.");
+    }
+
     /**
      * Creates a new branch with the given name, and points it at the current head commit.
      */

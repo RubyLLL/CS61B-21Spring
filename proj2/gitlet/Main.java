@@ -26,14 +26,14 @@ public class Main {
                 break;
             case "add":
                 if (args.length != 2) {
-                    System.out.println("Usage: java gitlet.Main add [file name].");
+                    System.out.println("Incorrect operands.");
                     break;
                 }
                 Repository.add(args[1]);
                 break;
             case "rm":
                 if (args.length != 2) {
-                    System.out.println("Usage: java gitlet.Main remove [file name].");
+                    System.out.println("Incorrect operands.");
                     break;
                 }
                 Repository.remove(args[1]);
@@ -48,7 +48,7 @@ public class Main {
                 break;
             case "branch":
                 if (args.length != 2) {
-                    System.out.println("Usage: java gitlet.Main branch [branch name].");
+                    System.out.println("Incorrect operands.");
                     break;
                 }
                 String branch = args[1];
@@ -56,20 +56,23 @@ public class Main {
                 break;
             case "rm-branch":
                 if (args.length != 2) {
-                    System.out.println("Usage: java gitlet.Main rm-branch [branchname].");
+                    System.out.println("Incorrect operands.");
                     break;
                 }
                 branch = args[1];
                 Repository.removeBranch(branch);
                 break;
             case "checkout":
-                String commands = args[1];
-                if (args.length == 3) {
-                    Repository.checkout(args[2], "HEAD");
-                } else if (args.length == 4) {
-                    Repository.checkout(args[3], args[1]);
-                } else if (args.length == 2) {
-                    break;
+                if (args.length == 2) {
+                    Repository.checkout(args[1]);
+                } else if (args[1].equals("--") || args[2].equals("--")) {
+                    if (args.length == 3) {
+                        Repository.checkout(args[2], "HEAD");
+                    } else if (args.length == 4) {
+                        Repository.checkout(args[3], args[1]);
+                    }
+                } else {
+                    System.out.println("Incorrect operands.");
                 }
                 break;
             case "log":
