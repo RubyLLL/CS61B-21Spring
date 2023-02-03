@@ -65,6 +65,10 @@ public class MyUtils {
         return files;
     }
 
+    /**
+     * Clear the directory f, including all files and nested directories
+     * @param f the directory to be cleaned
+     */
     public static void cleanDirectory(File f) {
         File[] files = f.listFiles();
         if (files != null) {
@@ -73,6 +77,22 @@ public class MyUtils {
                     cleanDirectory(file);
                     file.delete();
                 } else {file.delete();}
+            }
+        }
+    }
+
+    /**
+     * Clear the files of the given type from the directory f
+     * @param f the directory to be cleaned
+     * @param type the type of files to be cleaned
+     */
+    public static void cleanDirectory(File f, String type) {
+        File[] files = f.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.getName().endsWith("."+type)) {
+                    file.delete();
+                }
             }
         }
     }

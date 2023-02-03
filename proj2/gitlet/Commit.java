@@ -9,10 +9,9 @@ import java.util.*;
 import static gitlet.Repository.*;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Xiaoyue Lyu
  */
 /* Structure inside our .gitlet directory
  *   .gitlet
@@ -28,7 +27,6 @@ import static gitlet.Repository.*;
 
 public class Commit implements Serializable {
     /**
-     * TODO: add instance variables here.
      *
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
@@ -140,24 +138,26 @@ public class Commit implements Serializable {
     public static void checkout(String branch) {
         // Take all files from the given branch
         File commitFolder = getHead(branch);
-        File[] newHEADBlobs = new File(commitFolder, "blobs").listFiles(File::isFile);
-        Commit c = Commit.get(commitFolder.getName());
         Stage s = Stage.get();
         HashMap<String, String> untrackedFiles = s.getUntrackedFiles();
-        List<Blob> blobs = new ArrayList<>();
-        if (newHEADBlobs != null) {
-            for (File newBlob : newHEADBlobs) {
-                Blob nb = Utils.readObject(newBlob, Blob.class);
-                blobs.add(nb);
-                if (untrackedFiles.containsKey(nb.getFilename())) {
-                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
-                    return;
+        if (commitFolder == null) {
+            System.out.println("No such branch exists.");
+        } else if (branch.equals(Commit.get().getBranch())) {
+            System.out.println("No need to checkout the current branch.");
+        } else if (!untrackedFiles.isEmpty()) {
+            System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+        } else {
+            File[] newHEADBlobs = new File(commitFolder, "blobs").listFiles(File::isFile);
+            Commit c = Commit.get(commitFolder.getName());
+            c.setBranch(branch);
+            HEAD(c);
+            MyUtils.cleanDirectory(CWD, "txt");
+            if (newHEADBlobs != null) {
+                for (File newBlob : newHEADBlobs) {
+                    Blob nb = Utils.readObject(newBlob, Blob.class);
+                    nb.toFile(Utils.join(CWD, nb.getFilename()));
                 }
             }
-        }
-        HEAD(c);
-        for(Blob b : blobs) {
-            b.toFile(Utils.join(CWD, b.getFilename()));
         }
     }
 
@@ -203,7 +203,7 @@ public class Commit implements Serializable {
         File commitFolder = new File(GITLET_OBJ, c.id);
         commitFolder.mkdir();
         String parentId = c.getParentIDs().peek();
-        if (parentId != null) { //TODO: should delete those present in s.removedFiles
+        if (parentId != null) {
             File parentCommit = Utils.join(GITLET_OBJ, parentId, "blobs");
             Blob.copy(parentCommit, Utils.join(commitFolder, "blobs"));
         }
@@ -274,7 +274,6 @@ public class Commit implements Serializable {
      * Replace the commit object of the branch with the new commit object
      * @param commit
      */
-    //TODO: generalize this to copying
     public static void moveHead(Commit c) {
         File target = Utils.join(GITLET_REFS, c.branch, c.id);
         target.mkdir();

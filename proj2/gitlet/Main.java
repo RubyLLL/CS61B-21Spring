@@ -3,7 +3,7 @@ package gitlet;
 import static gitlet.Repository.GITLET_DIR;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- *  @author TODO
+ *  @author Xiaoyue Lyu
  */
 public class Main {
 
@@ -43,8 +43,9 @@ public class Main {
                     System.out.println("Please enter a commit message.");
                     break;
                 }
+                Commit c = Commit.get();
                 String message = args[1];
-                Repository.commit(message, "master");
+                Repository.commit(message, c.getBranch());
                 break;
             case "branch":
                 if (args.length != 2) {

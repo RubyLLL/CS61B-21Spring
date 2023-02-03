@@ -6,8 +6,8 @@ import java.io.File;
 public class Test {
     public static final File CWD = new File(System.getProperty("user.dir"));
     public static void main(String[] args) {
-        Stage s = Stage.get();
-        System.out.println(s);
+        Commit c = Commit.get();
+        System.out.println(c.getBranch());
 
 //        File f = new File(CWD, "test.txt");
 //        System.out.println(f.getAbsoluteFile());

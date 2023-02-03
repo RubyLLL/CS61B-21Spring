@@ -271,7 +271,6 @@ public class Stage implements Serializable {
         }
 
         // Staged for addition, but deleted in the working directory
-        // TODO: test22-remove-deleted-file
         HashMap<String, String> stagedButDeleted = MyUtils.compareMap(stagedFiles, hashMap);
         for (Map.Entry<String, String> entry: stagedButDeleted.entrySet()) {
             modifiedFiles.put("D" + entry.getKey(), entry.getValue());
@@ -307,7 +306,6 @@ public class Stage implements Serializable {
     }
 
     private void setRemoved() {
-        //TODO: how to deal with this?
         removedFiles = removedFiles != null ?
                 removedFiles :
                 new HashMap<String, String>();
