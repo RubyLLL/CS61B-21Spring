@@ -138,18 +138,20 @@ public class Commit implements Serializable {
     public static void checkout(String branch) {
         // Take all files from the given branch
         File commitFolder = getHead(branch);
+        reset(commitFolder, branch);
+    }
+
+    public static void reset(File commitFolder, String branch) {
         Stage s = Stage.get();
         HashMap<String, String> untrackedFiles = s.getUntrackedFiles();
-        if (commitFolder == null) {
-            System.out.println("No such branch exists.");
-        } else if (branch.equals(Commit.get().getBranch())) {
-            System.out.println("No need to checkout the current branch.");
-        } else if (!untrackedFiles.isEmpty()) {
+        if (!untrackedFiles.isEmpty()) {
             System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
         } else {
             File[] newHEADBlobs = new File(commitFolder, "blobs").listFiles(File::isFile);
             Commit c = Commit.get(commitFolder.getName());
-            c.setBranch(branch);
+            if (branch != null) {
+                c.setBranch(branch);
+            }
             HEAD(c);
             MyUtils.cleanDirectory(CWD, "txt");
             if (newHEADBlobs != null) {
