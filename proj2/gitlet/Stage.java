@@ -77,7 +77,8 @@ public class Stage implements Serializable {
         }
         s.removedFiles.remove(f.getName());
         s.untrackedFiles.remove(f.getName());
-        s.modifiedFiles.remove(f.getName());
+        s.modifiedFiles.remove("D" + f.getName());
+        s.modifiedFiles.remove("M" + f.getName());
         save(s);
     }
 
@@ -86,23 +87,32 @@ public class Stage implements Serializable {
      * @param f
      */
     public static void remove(File f) {
-        if (!f.exists()) {
-            return;
-        }
         Stage s = get();
-        Blob b = Blob.generateBlob(f);
-        if (s.alreadyStaged(b)) {
-            // Unstage the file if it is currently staged for addition.
-            s.stagedFiles.remove(f.getName());
-            Blob.remove(b, STAGE_BLOBS);
-        } else if (s.alreadyCommitted(b)) {
-            // If the file is tracked in the current commit, stage it for removal
-            // and remove the file from the working directory
-            s.removedFiles.put(f.getName(), b.getId());
-            f.delete();
+        //TODO: redo the HEAD folder, this is just annoying
+        if (!f.exists()) {
+            if (s.getCurrentCommit().containsKey(f.getName())) {
+                File HEAD = GITLET_HEADS.listFiles(File::isDirectory)[0];
+                Blob b = Blob.get(s.getCurrentCommit().get(f.getName()), Utils.join(HEAD, "blobs"));
+                s.removedFiles.put(f.getName(), b.getId());
+                s.modifiedFiles.remove("D"+f.getName());
+            }
         } else {
-            System.out.println("No reason to remove the file.");
+            Blob b = Blob.generateBlob(f);
+            if (s.alreadyStaged(b)) {
+                // Unstage the file if it is currently staged for addition.
+                s.stagedFiles.remove(f.getName());
+                Blob.remove(b, STAGE_BLOBS);
+            } else if (s.getCurrentCommit().containsKey(b.getFilename())) {
+                // If the file is tracked in the current commit, stage it for removal
+                // and remove the file from the working directory
+                s.removedFiles.put(f.getName(), b.getId());
+                s.modifiedFiles.remove("D"+f.getName());
+                f.delete();
+            } else {
+                System.out.println("No reason to remove the file.");
+            }
         }
+        s.update();
         save(s);
     }
 
@@ -238,6 +248,10 @@ public class Stage implements Serializable {
         return this.untrackedFiles;
     }
 
+    public HashMap<String, String> getCurrentCommit() {
+        return this.currentCommit;
+    }
+
     /**
      * Get all modified files
      * Modified: files whose names present in currentCommit
@@ -264,11 +278,9 @@ public class Stage implements Serializable {
         }
 
         // Not staged for removal, but tracked in the current commit and deleted from the working directory.
-        HashMap<String, String> diffFromCommit = MyUtils.compareMap(currentCommit, hashMap);
+        HashMap<String, String> diffFromCommit = MyUtils.compareMap(currentCommit, hashMap, removedFiles);
         for (Map.Entry<String, String> entry : diffFromCommit.entrySet()) {
-            if (!removedFiles.containsKey(entry.getKey())) {
-                modifiedFiles.put("D" + entry.getKey(), entry.getValue());
-            }
+            modifiedFiles.put("D" + entry.getKey(), entry.getValue());
         }
     }
 

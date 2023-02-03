@@ -139,19 +139,17 @@ public class Commit implements Serializable {
      */
     public static void checkout(String branch) {
         // Take all files from the given branch
-        File commitFolder = new File(GITLET_REFS, branch).listFiles(File::isDirectory)[0];
-        String commitId = commitFolder.getName();
-        System.out.println(commitId);
-        File[] blobFiles = new File(commitFolder, "blobs").listFiles(File::isFile);
-        Commit c = Commit.get(commitId);
+        File commitFolder = getHead(branch);
+        File[] newHEADBlobs = new File(commitFolder, "blobs").listFiles(File::isFile);
+        Commit c = Commit.get(commitFolder.getName());
         Stage s = Stage.get();
         HashMap<String, String> untrackedFiles = s.getUntrackedFiles();
         List<Blob> blobs = new ArrayList<>();
-        if (blobFiles != null) { //TODO: this part does not look right to me
-            for (File blobFile : blobFiles) {
-                Blob b = Utils.readObject(blobFile, Blob.class);
-                blobs.add(b);
-                if (untrackedFiles.containsKey(b.getFilename())) {
+        if (newHEADBlobs != null) {
+            for (File newBlob : newHEADBlobs) {
+                Blob nb = Utils.readObject(newBlob, Blob.class);
+                blobs.add(nb);
+                if (untrackedFiles.containsKey(nb.getFilename())) {
                     System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                     return;
                 }
@@ -177,6 +175,22 @@ public class Commit implements Serializable {
         Utils.writeObject(Utils.join(f, c.id), c);
         File source = Utils.join(GITLET_OBJ, c.id, "blobs");
         Blob.copy(source, Utils.join(f, "blobs"));
+    }
+
+    /**
+     * Get the head from the given branch
+     * @param branch
+     */
+    private static File getHead(String branch) {
+        File head = new File(GITLET_REFS, branch);
+        if (!head.exists()) {
+            return null;
+        }
+        File[] commits = head.listFiles(File::isDirectory);
+        if (commits == null) {
+            return null;
+        }
+        return commits[0];
     }
 
     /**
