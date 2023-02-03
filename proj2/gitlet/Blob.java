@@ -96,7 +96,7 @@ public class Blob implements Serializable {
             throw new GitletException("File does not exist.");
         }
         byte[] bytes = Utils.readContents(f);
-        Blob b = new Blob(f.getName(),f.getPath(), bytes);
+        Blob b = new Blob(f.getName(), f.getPath(), bytes);
         b.id = b.generateBlobId();
         return b;
     }

@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static gitlet.Repository.*;
 
@@ -48,8 +47,7 @@ public class Stage implements Serializable {
         Stage s;
         if (f.exists()) {
             s = Utils.readObject(f, Stage.class);
-        }
-        else {
+        } else {
             s = new Stage();
         }
         s.update();
@@ -88,13 +86,12 @@ public class Stage implements Serializable {
      */
     public static void remove(File f) {
         Stage s = get();
-        //TODO: redo the HEAD folder, this is just annoying
         if (!f.exists()) {
             if (s.getCurrentCommit().containsKey(f.getName())) {
                 File HEAD = GITLET_HEADS.listFiles(File::isDirectory)[0];
                 Blob b = Blob.get(s.getCurrentCommit().get(f.getName()), Utils.join(HEAD, "blobs"));
                 s.removedFiles.put(f.getName(), b.getId());
-                s.modifiedFiles.remove("D"+f.getName());
+                s.modifiedFiles.remove("D" + f.getName());
             }
         } else {
             Blob b = Blob.generateBlob(f);
@@ -106,7 +103,7 @@ public class Stage implements Serializable {
                 // If the file is tracked in the current commit, stage it for removal
                 // and remove the file from the working directory
                 s.removedFiles.put(f.getName(), b.getId());
-                s.modifiedFiles.remove("D"+f.getName());
+                s.modifiedFiles.remove("D" + f.getName());
                 f.delete();
             } else {
                 System.out.println("No reason to remove the file.");
@@ -128,11 +125,7 @@ public class Stage implements Serializable {
      * remove the stage, usually happens after a commit
      */
     public static void removeStage() {
-        for (File f: Objects.requireNonNull(STAGE_BLOBS.listFiles())) {
-            f.delete();
-        }
-        File f = new File(GITLET_STAGE, "current");
-        f.delete();
+        MyUtils.cleanDirectory(GITLET_STAGE);
     }
 
     public static void status() {
@@ -179,9 +172,9 @@ public class Stage implements Serializable {
 
     public void update() {
         Commit c = Commit.get();
-        currentCommit = c != null ?
-                c.getCommittedFiles() :
-                new HashMap<String, String>();
+        currentCommit = c != null
+                ? c.getCommittedFiles()
+                : new HashMap<String, String>();
         setUntracked();
         setModified();
     }
@@ -271,13 +264,16 @@ public class Stage implements Serializable {
         }
 
         // Staged for addition, but deleted in the working directory
-        HashMap<String, String> stagedButDeleted = MyUtils.compareMap(stagedFiles, hashMap);
+        HashMap<String, String> stagedButDeleted =
+                MyUtils.compareMap(stagedFiles, hashMap);
         for (Map.Entry<String, String> entry: stagedButDeleted.entrySet()) {
             modifiedFiles.put("D" + entry.getKey(), entry.getValue());
         }
 
-        // Not staged for removal, but tracked in the current commit and deleted from the working directory.
-        HashMap<String, String> diffFromCommit = MyUtils.compareMap(currentCommit, hashMap, removedFiles);
+        // Not staged for removal, but tracked in the current commit
+        // and deleted from the working directory.
+        HashMap<String, String> diffFromCommit =
+                MyUtils.compareMap(currentCommit, hashMap, removedFiles);
         for (Map.Entry<String, String> entry : diffFromCommit.entrySet()) {
             modifiedFiles.put("D" + entry.getKey(), entry.getValue());
         }
@@ -304,13 +300,6 @@ public class Stage implements Serializable {
         return stagedFiles.containsKey(entry.getKey())
                 && !stagedFiles.containsValue(entry.getValue());
     }
-
-    private void setRemoved() {
-        removedFiles = removedFiles != null ?
-                removedFiles :
-                new HashMap<String, String>();
-    }
-
 
     public String toString() {
         StringBuilder sb = new StringBuilder();

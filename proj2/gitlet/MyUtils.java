@@ -9,7 +9,8 @@ import static gitlet.Repository.CWD;
 public class MyUtils {
 
     /**
-     * Takes more than one HashMap, returns a new HashMap containing items that are only present in the first HashMap
+     * Takes more than one HashMap, returns a new HashMap
+     * containing items that are only present in the first HashMap
      * @param hashMaps
      * @return
      */
@@ -17,12 +18,11 @@ public class MyUtils {
     public static HashMap<String, String> compareMap(HashMap<String, String>... hashMaps) {
         if (hashMaps.length == 1) {
             return hashMaps[0];
-        }
-        else {
+        } else {
             HashMap<String, String> a = new HashMap<>(hashMaps[0]);
             HashMap<String, String> result = new HashMap<String, String>();
             for (int i = 1; i < hashMaps.length; i++) {
-                HashMap<String,String> b = hashMaps[i];
+                HashMap<String, String> b = hashMaps[i];
                 for (String key : b.keySet()) {
                     a.remove(key);
                 }
@@ -76,7 +76,9 @@ public class MyUtils {
                 if (file.isDirectory()) {
                     cleanDirectory(file);
                     file.delete();
-                } else {file.delete();}
+                } else {
+                    file.delete();
+                }
             }
         }
     }
@@ -90,7 +92,7 @@ public class MyUtils {
         File[] files = f.listFiles();
         if (files != null) {
             for (File file : files) {
-                if (file.getName().endsWith("."+type)) {
+                if (file.getName().endsWith("." + type)) {
                     file.delete();
                 }
             }
