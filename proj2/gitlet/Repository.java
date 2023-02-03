@@ -140,6 +140,15 @@ public class Repository {
         Commit.globalLog();
     }
 
+    public static void reset(String commitId) {
+        File commitFolder = new File(GITLET_OBJ, commitId);
+        if (!commitFolder.exists()) {
+            System.out.println("No commit with that id exists.");
+        } else {
+            Commit.reset(commitFolder, null);
+        }
+    }
+
     private static boolean isBranch(String branch) {
         File[] files = GITLET_REFS.listFiles(File::isDirectory);
         if (files != null) {

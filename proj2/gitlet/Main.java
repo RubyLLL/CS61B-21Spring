@@ -89,6 +89,13 @@ public class Main {
             case "status":
                 Repository.status();
                 break;
+            case "reset":
+                if (args.length != 2) {
+                    System.out.println("Incorrect operands.");
+                } else {
+                    Repository.reset(args[1]);
+                }
+                break;
             default:
                 System.out.println("No command with that name exists.");
         }

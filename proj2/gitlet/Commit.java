@@ -151,6 +151,8 @@ public class Commit implements Serializable {
             Commit c = Commit.get(commitFolder.getName());
             if (branch != null) {
                 c.setBranch(branch);
+            } else {
+                moveHead(c);
             }
             HEAD(c);
             MyUtils.cleanDirectory(CWD, "txt");
