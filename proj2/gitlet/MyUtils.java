@@ -1,16 +1,22 @@
 package gitlet;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static gitlet.Repository.CWD;
+
 public class MyUtils {
+
+    public static String dateToTimeStamp(Date date) {
+        DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
+        return dateFormat.format(date);
+    }
 
     /**
      * Takes more than one HashMap, returns a new HashMap
-     * containing items that are only present in the first HashMap
+     * containing items whose KEYS are only present in the first HashMap
      * @param hashMaps
      * @return
      */
@@ -29,7 +35,6 @@ public class MyUtils {
             }
             return a;
         }
-
     }
 
     /**
@@ -43,7 +48,7 @@ public class MyUtils {
         List<Blob> blobs = Blob.generateBlobs(files);
         HashMap<String, String> hashMap = new HashMap<>();
         for (Blob blob : blobs) {
-            hashMap.put(blob.getFilename(), blob.generateBlobId());
+            hashMap.put(blob.getFilename(), blob.getId());
         }
         return hashMap;
     }

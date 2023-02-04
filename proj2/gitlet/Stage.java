@@ -21,11 +21,11 @@ import static gitlet.Repository.*;
  */
 public class Stage implements Serializable {
 
-    private HashMap<String, String> untrackedFiles;
-    private HashMap<String, String> stagedFiles;
-    private HashMap<String, String> removedFiles;
-    private HashMap<String, String> modifiedFiles;
+    private final HashMap<String, String> stagedFiles;
+    private final HashMap<String, String> removedFiles;
+    private final HashMap<String, String> modifiedFiles;
     private HashMap<String, String> currentCommit;
+    private HashMap<String, String> untrackedFiles;
 
     public Stage() {
         untrackedFiles = new HashMap<String, String>();
@@ -59,10 +59,6 @@ public class Stage implements Serializable {
      * @param f
      */
     public static void add(File f) {
-        if (!f.exists()) {
-            System.out.println("File does not exist.");
-            return;
-        }
         Stage s = get();
         Blob b = Blob.generateBlob(f);
         if (!s.alreadyCommitted(b)
@@ -88,8 +84,9 @@ public class Stage implements Serializable {
         Stage s = get();
         if (!f.exists()) {
             if (s.getCurrentCommit().containsKey(f.getName())) {
-                File HEAD = GITLET_HEADS.listFiles(File::isDirectory)[0];
-                Blob b = Blob.get(s.getCurrentCommit().get(f.getName()), Utils.join(HEAD, "blobs"));
+                File head = GITLET_HEADS.listFiles(File::isDirectory)[0];
+                Blob b =
+                        Blob.get(s.getCurrentCommit().get(f.getName()), Utils.join(head, "blobs"));
                 s.removedFiles.put(f.getName(), b.getId());
                 s.modifiedFiles.remove("D" + f.getName());
             }

@@ -10,16 +10,16 @@ import java.util.HashMap;
 import java.util.List;
 
 public class Blob implements Serializable {
-    private String filename;
-    private String filepath;
-    private byte[] bytes;
-    private String id;
+    private final String filename;
+    private final String filepath;
+    private final byte[] bytes;
+    private final String id;
 
     public Blob(String filename, String filepath, byte[] bytes) {
         this.filename = filename;
         this.filepath = filepath;
         this.bytes = bytes;
-        this.id = "";
+        this.id = Utils.sha1("B" + filename + Arrays.toString(bytes));
     }
 
 
@@ -97,7 +97,6 @@ public class Blob implements Serializable {
         }
         byte[] bytes = Utils.readContents(f);
         Blob b = new Blob(f.getName(), f.getPath(), bytes);
-        b.id = b.generateBlobId();
         return b;
     }
 
@@ -115,15 +114,15 @@ public class Blob implements Serializable {
     }
 
     /**
-     * Recover the file from the Blob, save to the given filepath
+     * Recover the file from the Blob, save to the given dest
      * if the file exists, the content would be overwritten
      * @return
      */
-    public void toFile(File filepath) {
+    public void toFile(File dest) {
         String content = new String(bytes);
-        filepath.delete();
+        dest.delete();
         try {
-            filepath.createNewFile();
+            dest.createNewFile();
             FileWriter myWriter = new FileWriter(filename);
             myWriter.write(content);
             myWriter.close();
@@ -132,25 +131,15 @@ public class Blob implements Serializable {
         }
     }
 
-    public String generateBlobId() {
-        return Utils.sha1("B" + this.filename + Arrays.toString(this.bytes));
-    }
-
     public String getId() {
         return this.id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getFilename() {
         return this.filename;
     }
 
-    public byte[] getBytes() {
-        return this.bytes;
+    public String getFilepath() {
+        return this.filepath;
     }
 }
-
-

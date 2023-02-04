@@ -4,13 +4,10 @@ import java.io.File;
 
 import static gitlet.Utils.join;
 
-// TODO: any imports you need here
-
 /** Represents a gitlet repository.
- *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Xiaoyue Lyu
  */
 
 /* Structure inside our .gitlet directory
@@ -39,18 +36,14 @@ public class Repository {
     public static final File STAGE_BLOBS = join(GITLET_STAGE, "blobs");
 
     public static void init() {
-        //TODO: init
-        /**
-         * This system will automatically start with one commit:
-         * a commit that contains no files and has the commit message initial commit
-         */
         initDirectory();
         Commit.init();
     }
 
     private static void initDirectory() {
         if (GITLET_DIR.exists()) {
-            System.out.println("A Gitlet version-control system already exists in the current directory.");
+            System.out.println("A Gitlet version-control system "
+                    + "already exists in the current directory.");
         } else {
             GITLET_DIR.mkdir();
             GITLET_OBJ.mkdir();
@@ -63,6 +56,10 @@ public class Repository {
 
     public static void add(String fileName) {
         File file = new File(CWD, fileName);
+        if (!file.exists()) {
+            System.out.println("File does not exist.");
+            return;
+        }
         Stage.add(file);
     }
 
@@ -100,6 +97,17 @@ public class Repository {
         System.out.println("No such branch exists.");
     }
 
+    public static void reset(String commitId) {
+        File commitFolder = new File(GITLET_OBJ, commitId);
+        if (!commitFolder.exists()) {
+            System.out.println("No commit with that id exists.");
+        } else {
+            // Checks out all the files tracked by the given commit.
+            Commit.reset(commitFolder, null);
+            Stage.removeStage();
+        }
+    }
+
     /**
      * Creates a new branch with the given name, and points it at the current head commit.
      */
@@ -112,7 +120,7 @@ public class Repository {
         b.mkdir();
         Commit c = Commit.get();
         c.setBranch(branch);
-        Commit.moveHead(c);
+        Commit.moveFolder(new File(GITLET_REFS, c.getBranch()), c);
     }
 
     /**
@@ -138,15 +146,6 @@ public class Repository {
 
     public static void globalLog() {
         Commit.globalLog();
-    }
-
-    public static void reset(String commitId) {
-        File commitFolder = new File(GITLET_OBJ, commitId);
-        if (!commitFolder.exists()) {
-            System.out.println("No commit with that id exists.");
-        } else {
-            Commit.reset(commitFolder, null);
-        }
     }
 
     private static boolean isBranch(String branch) {
