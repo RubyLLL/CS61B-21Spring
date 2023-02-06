@@ -70,9 +70,7 @@ public class Stage implements Serializable {
             s.stagedFiles.remove(f.getName());
         }
         s.removedFiles.remove(f.getName());
-        s.untrackedFiles.remove(f.getName());
-        s.modifiedFiles.remove("D" + f.getName());
-        s.modifiedFiles.remove("M" + f.getName());
+        s.update();
         save(s);
     }
 
@@ -88,7 +86,6 @@ public class Stage implements Serializable {
                 Blob b =
                         Blob.get(s.getCurrentCommit().get(f.getName()), Utils.join(head, "blobs"));
                 s.removedFiles.put(f.getName(), b.getId());
-                s.modifiedFiles.remove("D" + f.getName());
             }
         } else {
             Blob b = Blob.generateBlob(f);
@@ -100,7 +97,6 @@ public class Stage implements Serializable {
                 // If the file is tracked in the current commit, stage it for removal
                 // and remove the file from the working directory
                 s.removedFiles.put(f.getName(), b.getId());
-                s.modifiedFiles.remove("D" + f.getName());
                 f.delete();
             } else {
                 System.out.println("No reason to remove the file.");
@@ -168,10 +164,7 @@ public class Stage implements Serializable {
     }
 
     public void update() {
-        Commit c = Commit.get();
-        currentCommit = c != null
-                ? c.getCommittedFiles()
-                : new HashMap<String, String>();
+        currentCommit = Commit.get().getCommittedFiles();
         setUntracked();
         setModified();
     }
@@ -273,6 +266,11 @@ public class Stage implements Serializable {
                 MyUtils.compareMap(currentCommit, hashMap, removedFiles);
         for (Map.Entry<String, String> entry : diffFromCommit.entrySet()) {
             modifiedFiles.put("D" + entry.getKey(), entry.getValue());
+        }
+
+        // Remove files that's already staged for removal
+        for (String key: removedFiles.keySet()) {
+            modifiedFiles.remove("D" + key);
         }
     }
 
