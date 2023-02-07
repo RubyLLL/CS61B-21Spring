@@ -7,6 +7,7 @@ import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Draws a world consisting of hexagonal regions.

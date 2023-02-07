@@ -5,9 +5,7 @@ import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 import jh61b.junit.In;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Room {
 
@@ -111,115 +109,28 @@ public class Room {
         return floor;
     }
 
-    public static TETile[][] init(int width, int height, TETile nothing) {
-        TETile[][] world = new TETile[width][height];
-        for (int x = 0; x < width; x += 1) {
-            for (int y = 0; y < height; y += 1) {
-                world[x][y] = nothing;
-            }
-        }
-        return world;
-    }
-
-    public static void draw(List<Room> rooms, TETile[][] world) {
-        // initialize the tile rendering engine with a window of size WIDTH x HEIGHT
-        TERenderer ter = new TERenderer();
-        ter.initialize(world.length, world[0].length);
-
-        for (Room room : rooms) {
-            int x = room.x;
-            int y = room.y;
-            int width = room.width;
-            int height = room.height;
-            for (int i = x; i < x + width; i++) {
-                for (int j = y; j < y + height; j++) {
-                    world[i][j] = room.floor;
-                }
-            }
-        }
-
-        world = addWall(world, Tileset.VWALL, Tileset.HWALL, Tileset.DWALL, Tileset.FLOOR, Tileset.GRASS);
-        world = breakWall(world, Tileset.VWALL, Tileset.HWALL, Tileset.DWALL, Tileset.FLOOR, Tileset.GRASS);
-        ter.renderFrame(world);
-    }
-
-    public static TETile[][] addWall(TETile[][] world,
-                                     TETile vwall,
-                                     TETile hwall,
-                                     TETile dwall,
-                                     TETile floor,
-                                     TETile nothing) {
-        for (int j = 0; j < world[0].length-1; j++) {
-            for (int i = 0; i < world.length-1; i++) {
-                if (world[i][j] != world[i + 1][j]) { // draw vertical walls
-                    world[i][j] = vwall;
-                } else if (world[i][j] != world[i][j + 1]) { // draw horizontal walls
-                    world[i][j] = hwall;
-                }
-            }
-        }
-
-
-        // draw diagonal walls
-        for (int j = 1; j < world[0].length - 1; j++) {
-            for (int i = 1; i < world.length - 1; i++) {
-                if (world[i][j + 1] == vwall
-                        && world[i + 1][j] == hwall
-                        && world[i + 1][j + 1] != world[i][j]) { // bottom left
-                    world[i][j] = dwall;
-                } else if (world[i][j + 1] == vwall
-                        && world[i - 1][j] == hwall
-                        && world[i - 1][j + 1] != world[i][j]) { // bottom right
-                    world[i][j] = dwall;
-                } else if (world[i][j - 1] == vwall
-                        && world[i - 1][j] == hwall
-                        && world[i - 1][j - 1] != world[i][j]) { // upper right
-                    world[i][j] = dwall;
-                } else if (world[i][j - 1] == vwall
-                        && world[i + 1][j] == hwall
-                        && world[i + 1][j - 1] != world[i][j]) { // upper left
-                    world[i][j] = dwall;
-                }
-            }
-        }
-        return world;
-    }
-
     public String toString() {
         int x2 = x + width;
         int y2 = y + height;
         return "[" + x + ", " + y + ", " + x2 + ", " + y2 + "]";
     }
 
-    private static boolean isWall(TETile tile) {
-        return tile == Tileset.VWALL || tile == Tileset.HWALL || tile == Tileset.DWALL;
-    }
-
-    public static TETile[][] breakWall(TETile[][] world, TETile vwall, TETile hwall, TETile dwall, TETile inside, TETile outside) {
-        for (int j = 1; j < world[0].length - 1; j++) {
-            for (int i = 1; i < world.length - 1; i++) {
-                // vertical thick wall
-                if (world[i][j] == vwall && world[i + 1][j] == vwall) {
-                    if (isWall(world[i][j + 1]) && isWall(world[i + 1][j + 1])) {
-                        world[i][j] = inside;
-                        world[i + 1][j] = inside;
-                    }
-                } else if (world[i][j] == hwall && world[i][j + 1] == hwall) {
-                    if (isWall(world[i + 1][j]) && isWall(world[i + 1][j + 1])) {
-                        world[i][j] = inside;
-                        world[i][j + 1] = inside;
-                    }
-                }
-            }
-        }
-        return world;
-    }
 
 
-    public static void main(String[] args) {
-        TETile[][] world = init(79, 49, Tileset.GRASS);
-        Random rand = new Random(327);
-        List<Room> rooms = generateRooms(rand, 30, world);
-        draw(rooms, world);
-    }
+
+//    public static void floodFillHelper(TETile[][] world, int x, int y, TETile nothing, TETile road) {
+//        if (x < 1 || y < 1 || x >= world.length - 1|| y >= world[0].length - 1) {
+//            return;
+//        }
+//        if (world[x][y] != nothing) {
+//            return;
+//        }
+//
+//        world[x][y] = road;
+//
+//        floodFillHelper(world, x + 1, y, nothing, road);
+//        floodFillHelper(world, x - 1, y, nothing, road);
+//        floodFillHelper(world, x, y + 1, nothing, road);
+//        floodFillHelper(world, x, y - 1, nothing, road);
+//    }
 }
