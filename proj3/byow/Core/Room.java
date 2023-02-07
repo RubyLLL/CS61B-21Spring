@@ -114,23 +114,4 @@ public class Room {
         int y2 = y + height;
         return "[" + x + ", " + y + ", " + x2 + ", " + y2 + "]";
     }
-
-
-
-
-//    public static void floodFillHelper(TETile[][] world, int x, int y, TETile nothing, TETile road) {
-//        if (x < 1 || y < 1 || x >= world.length - 1|| y >= world[0].length - 1) {
-//            return;
-//        }
-//        if (world[x][y] != nothing) {
-//            return;
-//        }
-//
-//        world[x][y] = road;
-//
-//        floodFillHelper(world, x + 1, y, nothing, road);
-//        floodFillHelper(world, x - 1, y, nothing, road);
-//        floodFillHelper(world, x, y + 1, nothing, road);
-//        floodFillHelper(world, x, y - 1, nothing, road);
-//    }
 }

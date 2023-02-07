@@ -4,13 +4,15 @@ import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Stack;
 
 public class Panel {
     public static final int WIDTH = 79;
     public static final int HEIGHT = 49;
-    public static final int SEED = 42;
+    public static final int SEED = 442;
     private TETile nothing;
     private TETile floor;
     private TETile vwall;
@@ -63,46 +65,66 @@ public class Panel {
                 }
             }
         }
-
+        addDoor();
         addWall();
-        breakWall();
-        //paintWalls(world, walls, Tileset.SAND);
+        //breakWall();
         ter.renderFrame(world);
     }
 
-    private void addWall() {
-        for (int j = 0; j < world[0].length - 1; j++) {
-            for (int i = 0; i < world.length - 1; i++) {
-                if (world[i][j] != world[i + 1][j]) { // draw vertical walls
-                    world[i][j] = vwall;
-                } else if (world[i][j] != world[i][j + 1]) { // draw horizontal walls
-                    world[i][j] = hwall;
-                }
+    private void addDoor() {
+        for (Room room : rooms) {
+            int x = room.getPositions().get(0);
+            int y = room.getPositions().get(1);
+            int width = room.getPositions().get(2);
+            int height = room.getPositions().get(3);
+            Random rand = new Random(SEED);
+            // lower horizontal door
+            int offset = RandomUtils.uniform(rand, x + 1, x + width);
+            boolean flag = RandomUtils.bernoulli(rand, Math.min(width * 0.1, 1));
+            if (flag && world[offset][y - 1] != floor) {
+                world[offset][y - 1] = Tileset.TREE;
+            }
+            // upper horizontal door
+            offset = RandomUtils.uniform(rand, x + 1, x + width);
+            flag = RandomUtils.bernoulli(rand, Math.min(width * 0.1, 1));
+            if (flag && world[offset][y + height] != floor) {
+                world[offset][y + height] = Tileset.TREE;
+            }
+            // leftmost vertical
+            offset = RandomUtils.uniform(rand, y + 1, y + height);
+            flag = RandomUtils.bernoulli(rand, Math.min(height * 0.1, 1));
+            if (flag && world[x - 1][offset] != floor) {
+                world[x - 1][offset] = Tileset.TREE;
+            }
+            // rightmost vertical
+            offset = RandomUtils.uniform(rand, y + 1, y + height);
+            flag = RandomUtils.bernoulli(rand, Math.min(height * 0.1, 1));
+            if (flag && world[x + width][offset] != floor) {
+                world[x + width][offset] = Tileset.TREE;
             }
         }
+    }
 
-
-        // draw diagonal walls
-        for (int j = 0; j < world[0].length - 1; j++) {
-            for (int i = 0; i < world.length - 1; i++) {
-                if (world[i][j + 1] == vwall
-                        && world[i + 1][j] == hwall
-                        && world[i + 1][j + 1] != world[i][j]) { // bottom left
-                    world[i][j] = dwall;
-                } else if (i - 1 > 0 && world[i][j + 1] == vwall
-                        && world[i - 1][j] == hwall
-                        && world[i - 1][j + 1] != world[i][j]) { // bottom right
-                    world[i][j] = dwall;
-                } else if (i - 1 > 0 && j - 1 > 0
-                        && world[i][j - 1] == vwall
-                        && world[i - 1][j] == hwall
-                        && world[i - 1][j - 1] != world[i][j]) { // upper right
-                    world[i][j] = dwall;
-                } else if (j - 1 > 0 && world[i][j - 1] == vwall
-                        && world[i + 1][j] == hwall
-                        && world[i + 1][j - 1] != world[i][j]) { // upper left
-                    world[i][j] = dwall;
-
+    private void addWall() {
+        for (Room room : rooms) {
+            int x = room.getPositions().get(0);
+            int y = room.getPositions().get(1);
+            int width = room.getPositions().get(2);
+            int height = room.getPositions().get(3);
+            for (int i = x - 1; i <= x + width; i++) { // horizontal
+                if (world[i][y-1] != floor && world[i][y-1] != Tileset.TREE) {
+                    world[i][y-1] = hwall;
+                }
+                if (world[i][y + height] != floor && world[i][y + height] != Tileset.TREE) {
+                    world[i][y + height] = hwall;
+                }
+            }
+            for (int j = y - 1; j <= y + height; j++) { // horizontal
+                if (world[x-1][j] != floor && world[x-1][j] != Tileset.TREE) {
+                    world[x-1][j] = vwall;
+                }
+                if (world[x + width][j] != floor && world[x + width][j] != Tileset.TREE) {
+                    world[x + width][j] = vwall;
                 }
             }
         }
@@ -129,6 +151,39 @@ public class Panel {
     private boolean isWall(TETile tile) {
         return tile == vwall || tile == hwall || tile == dwall;
     }
+
+
+    public void floodFillHelper(int x, int y, TETile fill, TETile tile, List<List<Integer>> coor) {
+        if (x < 1 || y < 1 || x >= world.length - 1|| y >= world[0].length - 1) {
+            return;
+        }
+        if (world[x][y] != tile) {
+            return;
+        }
+
+        world[x][y] = fill;
+        List<Integer> pos = new ArrayList<Integer>();
+        pos.add(x);
+        pos.add(y);
+        coor.add(pos);
+        floodFillHelper(x + 1, y, fill, tile, coor);
+        floodFillHelper(x - 1, y, fill, tile, coor);
+        floodFillHelper(x, y + 1, fill, tile, coor);
+        floodFillHelper(x, y - 1, fill, tile, coor);
+    }
+
+    public List<List<Integer>> findRooms() {
+        List<List<Integer>> result = new ArrayList<>();
+        for (int j = 0; j < world[0].length - 1; j++) {
+            for (int i = 0; i < world.length - 1; i++) {
+                if (world[i][j] == floor) {
+                    floodFillHelper(i, j, Tileset.SAND, Tileset.FLOOR, result);
+                }
+            }
+        }
+        return result;
+    }
+
 
     public static void main(String[] args) {
         Panel panel = new Panel();
